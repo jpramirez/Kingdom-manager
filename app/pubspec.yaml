@@ -1,0 +1,47 @@
+name: household_mgmt
+description: "Household Management - Family chores, grocery, meals & calendar"
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.10.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+
+  # State management
+  flutter_riverpod: ^2.6.1
+
+  # Routing
+  go_router: ^14.8.1
+
+  # Networking
+  dio: ^5.7.0
+  web_socket_channel: ^3.0.2
+
+  # Storage
+  flutter_secure_storage: ^9.2.4
+  shared_preferences: ^2.3.5
+
+  # UI
+  cupertino_icons: ^1.0.8
+  table_calendar: ^3.2.0
+
+  # Sharing
+  share_plus: ^10.1.4
+
+  # Utils
+  uuid: ^4.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
