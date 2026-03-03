@@ -42,10 +42,10 @@ class SettingsScreen extends ConsumerWidget {
               subtitle: Text('${l10n.inviteCode}: ${household.inviteCode}'),
             ),
             ListTile(
-              leading: const Icon(Icons.people),
-              title: Text(l10n.members),
+              leading: const Icon(Icons.family_restroom),
+              title: Text(l10n.familyMembers),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/members'),
+              onTap: () => context.push('/family'),
             ),
             const Divider(),
           ],
@@ -55,20 +55,26 @@ class SettingsScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Text(l10n.language, style: Theme.of(context).textTheme.titleSmall),
           ),
-          ...availableLocales.map((localeInfo) {
-            return RadioListTile<String>(
-              title: Text(localeInfo.nativeName),
-              subtitle: Text(localeInfo.englishName),
-              value: localeInfo.locale.languageCode,
-              groupValue: ref.watch(localeProvider)?.languageCode ??
-                  Localizations.localeOf(context).languageCode,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(localeProvider.notifier).setLocale(Locale(value));
-                }
-              },
-            );
-          }),
+          RadioGroup<String>(
+            groupValue: ref.watch(localeProvider)?.languageCode ??
+                Localizations.localeOf(context).languageCode,
+            onChanged: (value) {
+              if (value != null) {
+                ref.read(localeProvider.notifier).setLocale(Locale(value));
+                // Sync to backend so AI responds in the correct language
+                ref.read(authRepositoryProvider).updateMe(preferredLocale: value);
+              }
+            },
+            child: Column(
+              children: availableLocales.map((localeInfo) {
+                return RadioListTile<String>(
+                  title: Text(localeInfo.nativeName),
+                  subtitle: Text(localeInfo.englishName),
+                  value: localeInfo.locale.languageCode,
+                );
+              }).toList(),
+            ),
+          ),
           const Divider(),
 
           // Logout

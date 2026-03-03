@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../household/providers/household_provider.dart';
 import '../models/approval.dart';
@@ -11,12 +13,24 @@ class ApprovalsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final household = ref.watch(activeHouseholdProvider).household;
+
+    Widget backButton() => IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/');
+        }
+      },
+    );
 
     if (household == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Approvals')),
-        body: const Center(child: Text('No household selected')),
+        appBar: AppBar(leading: backButton(), title: Text(l10n.approvals)),
+        body: Center(child: Text(l10n.noHouseholdSelected)),
       );
     }
 
@@ -24,11 +38,12 @@ class ApprovalsScreen extends ConsumerWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Approvals'),
-          bottom: const TabBar(
+          leading: backButton(),
+          title: Text(l10n.approvals),
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'Pending'),
-              Tab(text: 'All'),
+              Tab(text: l10n.pending),
+              Tab(text: l10n.allApprovals),
             ],
           ),
         ),
@@ -49,6 +64,7 @@ class _PendingTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final approvalsAsync = ref.watch(pendingApprovalsProvider(householdId));
     final membersAsync = ref.watch(membersProvider(householdId));
     final authState = ref.watch(authStateProvider);
@@ -70,12 +86,12 @@ class _PendingTab extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Error: $e'),
+            Text('${l10n.error}: $e'),
             const SizedBox(height: 8),
             FilledButton(
               onPressed: () =>
                   ref.invalidate(pendingApprovalsProvider(householdId)),
-              child: const Text('Retry'),
+              child: Text(l10n.retry),
             ),
           ],
         ),
@@ -91,7 +107,7 @@ class _PendingTab extends ConsumerWidget {
                     color: Theme.of(context).colorScheme.outline),
                 const SizedBox(height: 16),
                 Text(
-                  'No pending approvals',
+                  l10n.noPendingApprovals,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Theme.of(context).colorScheme.outline,
                       ),
@@ -134,19 +150,20 @@ class _PendingTab extends ConsumerWidget {
 
   Future<void> _handleApprove(
       BuildContext context, WidgetRef ref, ApprovalRequest approval) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Approve Request'),
+        title: Text(l10n.approveRequest),
         content: Text('Approve "${approval.title}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Approve'),
+            child: Text(l10n.approve),
           ),
         ],
       ),
@@ -162,13 +179,13 @@ class _PendingTab extends ConsumerWidget {
       ref.invalidate(allApprovalsProvider(householdId));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Request approved')),
+          SnackBar(content: Text(l10n.requestApproved)),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('${l10n.error}: $e')),
         );
       }
     }
@@ -176,12 +193,13 @@ class _PendingTab extends ConsumerWidget {
 
   Future<void> _handleReject(
       BuildContext context, WidgetRef ref, ApprovalRequest approval) async {
+    final l10n = AppLocalizations.of(context)!;
     final reasonController = TextEditingController();
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Reject Request'),
+        title: Text(l10n.rejectRequest),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,9 +208,9 @@ class _PendingTab extends ConsumerWidget {
             const SizedBox(height: 12),
             TextField(
               controller: reasonController,
-              decoration: const InputDecoration(
-                labelText: 'Reason (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.reasonOptional,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
@@ -201,12 +219,12 @@ class _PendingTab extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Reject'),
+            child: Text(l10n.reject),
           ),
         ],
       ),
@@ -224,13 +242,13 @@ class _PendingTab extends ConsumerWidget {
       ref.invalidate(allApprovalsProvider(householdId));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Request rejected')),
+          SnackBar(content: Text(l10n.requestRejected)),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text('${l10n.error}: $e')),
         );
       }
     } finally {
@@ -245,6 +263,7 @@ class _AllTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final approvalsAsync = ref.watch(allApprovalsProvider(householdId));
 
     return approvalsAsync.when(
@@ -253,12 +272,12 @@ class _AllTab extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Error: $e'),
+            Text('${l10n.error}: $e'),
             const SizedBox(height: 8),
             FilledButton(
               onPressed: () =>
                   ref.invalidate(allApprovalsProvider(householdId)),
-              child: const Text('Retry'),
+              child: Text(l10n.retry),
             ),
           ],
         ),
@@ -274,7 +293,7 @@ class _AllTab extends ConsumerWidget {
                     color: Theme.of(context).colorScheme.outline),
                 const SizedBox(height: 16),
                 Text(
-                  'No approvals yet',
+                  l10n.noApprovalsYet,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Theme.of(context).colorScheme.outline,
                       ),

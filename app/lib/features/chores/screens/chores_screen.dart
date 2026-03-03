@@ -23,11 +23,23 @@ class ChoresScreen extends ConsumerWidget {
       );
     }
 
+    final canManage = ref.watch(currentMemberProvider).valueOrNull?.canManage ?? false;
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.chores),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.smart_toy_outlined),
+              tooltip: l10n.aiAskAboutChores,
+              onPressed: () => context.push('/ai-chat', extra: {
+                'initialMessage': l10n.aiSuggestChores,
+                'taskHint': 'chore_scheduling',
+              }),
+            ),
+          ],
           bottom: TabBar(
             tabs: [
               Tab(text: l10n.allChores),
@@ -41,10 +53,12 @@ class ChoresScreen extends ConsumerWidget {
             _MyTasksTab(householdId: household.id),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => context.push('/chores/create'),
-          child: const Icon(Icons.add),
-        ),
+        floatingActionButton: canManage
+            ? FloatingActionButton(
+                onPressed: () => context.push('/chores/create'),
+                child: const Icon(Icons.add),
+              )
+            : null,
       ),
     );
   }
@@ -179,11 +193,11 @@ class _MyTasksTab extends ConsumerWidget {
       case ChoreStatus.skipped:
         return l10n.skipped;
       case ChoreStatus.active:
-        return 'Active';
+        return l10n.active;
       case ChoreStatus.paused:
-        return 'Paused';
+        return l10n.paused;
       case ChoreStatus.archived:
-        return 'Archived';
+        return l10n.archived;
     }
   }
 
@@ -311,7 +325,7 @@ class _MyTasksTab extends ConsumerWidget {
                   subtitle: Text(_statusLabel(context, assignment.status)),
                   trailing: assignment.dueDate != null
                       ? Text(
-                          _formatDate(assignment.dueDate!),
+                          _formatDate(assignment.dueDate!, l10n),
                           style: Theme.of(context)
                               .textTheme
                               .labelSmall
@@ -333,13 +347,13 @@ class _MyTasksTab extends ConsumerWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatDate(DateTime date, AppLocalizations l10n) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final dateOnly = DateTime(date.year, date.month, date.day);
 
-    if (dateOnly == today) return 'Today';
-    if (dateOnly == today.add(const Duration(days: 1))) return 'Tomorrow';
+    if (dateOnly == today) return l10n.today;
+    if (dateOnly == today.add(const Duration(days: 1))) return l10n.tomorrow;
 
     return '${date.day}/${date.month}/${date.year}';
   }

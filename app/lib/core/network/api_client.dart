@@ -40,11 +40,11 @@ class ApiClient {
   Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) =>
       dio.get(path, queryParameters: queryParameters);
 
-  Future<Response> post(String path, {dynamic data}) =>
-      dio.post(path, data: data);
+  Future<Response> post(String path, {dynamic data, Options? options}) =>
+      dio.post(path, data: data, options: options);
 
-  Future<Response> patch(String path, {dynamic data}) =>
-      dio.patch(path, data: data);
+  Future<Response> patch(String path, {dynamic data, Map<String, dynamic>? queryParameters}) =>
+      dio.patch(path, data: data, queryParameters: queryParameters);
 
   Future<Response> put(String path, {dynamic data}) =>
       dio.put(path, data: data);

@@ -20,6 +20,14 @@ class ApiEndpoints {
   static String members(String hid) => '/households/$hid/members/';
   static String member(String hid, String mid) => '/households/$hid/members/$mid';
 
+  // Family (unified)
+  static String family(String hid) => '/households/$hid/family';
+
+  // Family Profiles
+  static String familyProfiles(String hid) => '/households/$hid/profiles';
+  static String familyProfile(String hid, String pid) =>
+      '/households/$hid/profiles/$pid';
+
   // Chores
   static String chores(String hid) => '/households/$hid/chores/';
   static String chore(String hid, String id) => '/households/$hid/chores/$id';
@@ -48,6 +56,7 @@ class ApiEndpoints {
 
   // Approvals
   static String approvals(String hid) => '/households/$hid/approvals/';
+  static String approvalsAll(String hid) => '/households/$hid/approvals/all';
   static String approvalApprove(String hid, String id) => '/households/$hid/approvals/$id/approve';
   static String approvalReject(String hid, String id) => '/households/$hid/approvals/$id/reject';
 

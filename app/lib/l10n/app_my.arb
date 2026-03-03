@@ -1,6 +1,6 @@
 {
   "@@locale": "my",
-  "appTitle": "အိမ်ထောင်စု စီမံခန့်ခွဲမှု",
+  "appTitle": "Jia",
   "login": "ဝင်ရောက်ရန်",
   "register": "စာရင်းသွင်းရန်",
   "email": "အီးမေးလ်",
@@ -217,5 +217,57 @@
     "placeholders": {
       "percent": {"type": "int"}
     }
-  }
+  },
+
+  "familyProfiles": "မိသားစု ပရိုဖိုင်များ",
+  "familySetupTitle": "မိသားစုကို စနစ်ထည့်ပါ",
+  "familySetupDesc": "အစားအစာ၊ အိမ်တွင်းအလုပ်နှင့် အချိန်ဇယားများကို စိတ်ကြိုက်ပြင်ဆင်ရန် မိသားစုဝင်တစ်ဦးချင်းစီအတွက် ပရိုဖိုင်များ ထည့်ပါ။",
+  "addFamilyMember": "မိသားစုဝင် ထည့်ရန်",
+  "profileName": "အမည်အပြည့်အစုံ",
+  "profileRole": "အခန်းကဏ္ဍ",
+  "profileAge": "အသက် (ရွေးချယ်နိုင်)",
+  "profileLanguage": "နှစ်သက်သော ဘာသာစကား",
+  "dietaryPreferences": "အစားအသောက် နှစ်သက်မှုများ",
+  "allergiesLabel": "ဓာတ်မတည့်မှုများ",
+  "mealTimes": "အစားအသောက် အချိန်များ",
+  "profileSaved": "ပရိုဖိုင် သိမ်းပြီး",
+  "profileDeleted": "ပရိုဖိုင် ဖျက်ပြီး",
+  "reviewProfiles": "မိသားစုဝင်များ",
+  "setupComplete": "စနစ်ထည့်ခြင်း ပြီးစီး",
+  "generateFromMealPlan": "အစားအစာ အစီအစဉ်မှ ဖန်တီးပါ",
+
+  "changeRole": "အခန်းကဏ္ဍ ပြောင်းပါ",
+  "removeMember": "အဖွဲ့ဝင် ဖယ်ရှားပါ",
+  "removeMemberConfirm": "ဤအဖွဲ့ဝင်ကို အိမ်ထောင်စုမှ ဖယ်ရှားလိုပါသလား?",
+  "memberRemoved": "အဖွဲ့ဝင် ဖယ်ရှားပြီး",
+  "memberUpdated": "အဖွဲ့ဝင် အပ်ဒိတ်ပြီး",
+  "admin": "အက်ဒမင်",
+  "adminAccess": "အက်ဒမင် ခွင့်ပြုချက်",
+  "maxHelpersReached": "အိမ်ထောင်စုတစ်ခုလျှင် အကူအညီပေးသူ ၂ ဦးသာ",
+  "selectRole": "အခန်းကဏ္ဍ ရွေးပါ",
+
+  "familyMembers": "မိသားစုဝင်များ",
+  "appAccount": "ချိတ်ဆက်ပြီး",
+  "pendingInvite": "ဖိတ်ကြားပြီး",
+  "noAppAccount": "အကောင့်မရှိ",
+  "editProfile": "ပရိုဖိုင်ပြင်ဆင်",
+  "removeProfileLinkedWarning": "ဤအရာသည် ဤအိမ်ထောင်သို့ ၎င်းတို့၏ အက်ပ်ဝင်ရောက်ခွင့်ကိုလည်း ရုပ်သိမ်းပါမည်။",
+  "inviteEmailOrPhone": "အီးမေးလ် သို့မဟုတ် ဖုန်း (ရွေးချယ်ခွင့်)",
+  "inviteEmailHint": "သူတို့ ပါဝင်ရန် ဖိတ်ကြားကုဒ်ကို ရရှိပါမည်",
+
+  "noHouseholdSelected": "အိမ်ထောင်စု မရွေးချယ်ရသေးပါ",
+  "forMemberOptional": "အဖွဲ့ဝင်အတွက် (ရွေးချယ်နိုင်)",
+  "everyone": "အားလုံး",
+  "notesOptional": "မှတ်စုများ (ရွေးချယ်နိုင်)",
+
+  "aiAskAboutChores": "Jia ကို အိမ်မှုကိစ္စအကြောင်း မေးပါ",
+  "aiAskAboutMeals": "Jia ကို အစားအသောက်အကြောင်း မေးပါ",
+  "aiAskAboutGrocery": "Jia ကို ကုန်စုံအကြောင်း မေးပါ",
+  "aiAskAboutCalendar": "Jia ကို ပြက္ခဒိန်အကြောင်း မေးပါ",
+
+  "tomorrow": "မနက်ဖြန်",
+  "paused": "ခေတ္တရပ်",
+  "archived": "မှတ်တမ်းတင်ပြီး",
+  "deleteChoreConfirm": "ဤအိမ်မှုကို ဖျက်ချင်ပါသလား?",
+  "reasonOptional": "အကြောင်းပြချက် (ရွေးချယ်နိုင်)"
 }

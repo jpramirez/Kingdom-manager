@@ -21,10 +21,25 @@ class GroceryScreen extends ConsumerWidget {
       );
     }
 
+    final canManage = ref.watch(currentMemberProvider).valueOrNull?.canManage ?? false;
     final listsAsync = ref.watch(groceryListsProvider(household.id));
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.grocery)),
+      appBar: AppBar(
+        title: Text(l10n.grocery),
+        actions: [
+          if (canManage)
+            IconButton(
+              icon: const Icon(Icons.smart_toy_outlined),
+              tooltip: l10n.aiAskAboutGrocery,
+              onPressed: () => context.push('/ai-chat', extra: {
+                'initialMessage':
+                    'Generate a grocery list from this week\'s meal plan. Check what we already have on active grocery lists and only add what\'s missing.',
+                'taskHint': 'grocery',
+              }),
+            ),
+        ],
+      ),
       body: listsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
@@ -108,10 +123,12 @@ class GroceryScreen extends ConsumerWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showCreateListDialog(context, ref, household.id),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: canManage
+          ? FloatingActionButton(
+              onPressed: () => _showCreateListDialog(context, ref, household.id),
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 
@@ -216,18 +233,19 @@ class _DateHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     String label;
     if (date == null) {
-      label = 'No delivery date';
+      label = l10n.noDeliveryDate;
     } else {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       final dateOnly = DateTime(date!.year, date!.month, date!.day);
 
       if (dateOnly == today) {
-        label = 'Today';
+        label = l10n.today;
       } else if (dateOnly == today.add(const Duration(days: 1))) {
-        label = 'Tomorrow';
+        label = l10n.tomorrow;
       } else {
         final weekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         label =
@@ -274,6 +292,7 @@ class _GroceryListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final statusColor = _statusColor(groceryList.status);
 
     return Card(
@@ -324,7 +343,7 @@ class _GroceryListTile extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    '${groceryList.checkedCount}/${groceryList.itemCount} items',
+                    '${groceryList.checkedCount}/${l10n.itemCount(groceryList.itemCount)}',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           color: Theme.of(context).colorScheme.outline,
                         ),

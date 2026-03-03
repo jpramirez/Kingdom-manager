@@ -1,6 +1,6 @@
 {
   "@@locale": "tl",
-  "appTitle": "Pamamahala ng Tahanan",
+  "appTitle": "Jia",
   "login": "Mag-login",
   "register": "Magrehistro",
   "email": "Email",
@@ -217,5 +217,57 @@
     "placeholders": {
       "percent": {"type": "int"}
     }
-  }
+  },
+
+  "familyProfiles": "Mga Profile ng Pamilya",
+  "familySetupTitle": "I-setup ang Iyong Pamilya",
+  "familySetupDesc": "Magdagdag ng mga profile para sa bawat miyembro ng pamilya upang i-personalize ang mga pagkain, gawaing-bahay, at iskedyul.",
+  "addFamilyMember": "Magdagdag ng Miyembro",
+  "profileName": "Buong Pangalan",
+  "profileRole": "Tungkulin",
+  "profileAge": "Edad (opsyonal)",
+  "profileLanguage": "Piniling Wika",
+  "dietaryPreferences": "Mga Kagustuhan sa Pagkain",
+  "allergiesLabel": "Mga Allergy",
+  "mealTimes": "Oras ng Kain",
+  "profileSaved": "Na-save ang profile",
+  "profileDeleted": "Na-delete ang profile",
+  "reviewProfiles": "Mga Miyembro ng Pamilya",
+  "setupComplete": "Kumpleto na ang Setup",
+  "generateFromMealPlan": "Gawa mula sa Meal Plan",
+
+  "changeRole": "Palitan ang Papel",
+  "removeMember": "Alisin ang Miyembro",
+  "removeMemberConfirm": "Sigurado ka bang gusto mong alisin ang miyembrong ito sa sambahayan?",
+  "memberRemoved": "Naalis ang miyembro",
+  "memberUpdated": "Na-update ang miyembro",
+  "admin": "Admin",
+  "adminAccess": "Admin access",
+  "maxHelpersReached": "Maximum 2 helper bawat sambahayan",
+  "selectRole": "Pumili ng Papel",
+
+  "familyMembers": "Mga Miyembro ng Pamilya",
+  "appAccount": "Naka-link",
+  "pendingInvite": "Inimbitahan",
+  "noAppAccount": "Walang account",
+  "editProfile": "I-edit ang Profile",
+  "removeProfileLinkedWarning": "Ito rin ay magtatanggal ng kanilang access sa app sa sambahayan na ito.",
+  "inviteEmailOrPhone": "Email o Telepono (opsyonal)",
+  "inviteEmailHint": "Matatanggap nila ang invite code para sumali",
+
+  "noHouseholdSelected": "Walang napiling sambahayan",
+  "forMemberOptional": "Para sa miyembro (opsyonal)",
+  "everyone": "Lahat",
+  "notesOptional": "Mga tala (opsyonal)",
+
+  "aiAskAboutChores": "Tanungin si Jia tungkol sa gawaing bahay",
+  "aiAskAboutMeals": "Tanungin si Jia tungkol sa pagkain",
+  "aiAskAboutGrocery": "Tanungin si Jia tungkol sa grocery",
+  "aiAskAboutCalendar": "Tanungin si Jia tungkol sa kalendaryo",
+
+  "tomorrow": "Bukas",
+  "paused": "Naka-pause",
+  "archived": "Naka-archive",
+  "deleteChoreConfirm": "Sigurado ka bang gusto mong burahin ang gawaing ito?",
+  "reasonOptional": "Dahilan (opsyonal)"
 }

@@ -19,6 +19,8 @@ import '../../features/approvals/screens/approvals_screen.dart';
 import '../../features/notifications/screens/notifications_screen.dart';
 import '../../features/ai/screens/ai_chat_screen.dart';
 import '../../features/ai/screens/ai_onboarding_screen.dart';
+import '../../features/family_profiles/screens/family_members_screen.dart';
+import '../../features/family_profiles/screens/family_setup_wizard_screen.dart';
 import '../../features/household/providers/household_provider.dart';
 import '../../features/household/screens/create_household_screen.dart';
 import '../../features/household/screens/household_setup_screen.dart';
@@ -78,8 +80,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/create-household', builder: (_, __) => const CreateHouseholdScreen()),
       GoRoute(path: '/join-household', builder: (_, __) => const JoinHouseholdScreen()),
 
-      // Members (full screen)
+      // Household members
       GoRoute(path: '/members', builder: (_, __) => const MembersScreen()),
+
+      // Family members (unified, full screen)
+      GoRoute(path: '/family', builder: (_, __) => const FamilyMembersScreen()),
+
+      // Family setup wizard (used during onboarding)
+      GoRoute(
+        path: '/family-setup',
+        builder: (_, state) => FamilySetupWizardScreen(
+          householdId: state.uri.queryParameters['hid'] ?? '',
+        ),
+      ),
 
       // Chore routes (full screen, outside shell)
       GoRoute(
@@ -134,7 +147,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       // AI Chat routes (full screen)
       GoRoute(
         path: '/ai-chat',
-        builder: (_, __) => const AiChatScreen(),
+        builder: (_, state) {
+          final extra = state.extra as Map<String, String>?;
+          return AiChatScreen(
+            initialMessage: extra?['initialMessage'],
+            taskHint: extra?['taskHint'],
+          );
+        },
       ),
       GoRoute(
         path: '/ai-chat/:id',
@@ -190,6 +209,11 @@ class MainShell extends StatelessWidget {
             label: l10n.chores,
           ),
           NavigationDestination(
+            icon: const Icon(Icons.restaurant_menu_outlined),
+            selectedIcon: const Icon(Icons.restaurant_menu),
+            label: l10n.meals,
+          ),
+          NavigationDestination(
             icon: const Icon(Icons.calendar_month_outlined),
             selectedIcon: const Icon(Icons.calendar_month),
             label: l10n.calendar,
@@ -213,9 +237,10 @@ class MainShell extends StatelessWidget {
     try {
       final location = GoRouterState.of(context).uri.path;
       if (location.startsWith('/chores')) return 1;
-      if (location.startsWith('/calendar')) return 2;
-      if (location.startsWith('/grocery')) return 3;
-      if (location.startsWith('/settings')) return 4;
+      if (location.startsWith('/meals')) return 2;
+      if (location.startsWith('/calendar')) return 3;
+      if (location.startsWith('/grocery')) return 4;
+      if (location.startsWith('/settings')) return 5;
       return 0;
     } catch (_) {
       return 0;
@@ -229,10 +254,12 @@ class MainShell extends StatelessWidget {
       case 1:
         context.go('/chores');
       case 2:
-        context.go('/calendar');
+        context.go('/meals');
       case 3:
-        context.go('/grocery');
+        context.go('/calendar');
       case 4:
+        context.go('/grocery');
+      case 5:
         context.go('/settings');
     }
   }

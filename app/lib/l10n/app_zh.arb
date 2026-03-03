@@ -1,6 +1,6 @@
 {
   "@@locale": "zh",
-  "appTitle": "家务管理",
+  "appTitle": "Jia",
   "login": "登录",
   "register": "注册",
   "email": "电子邮件",
@@ -217,5 +217,57 @@
     "placeholders": {
       "percent": {"type": "int"}
     }
-  }
+  },
+
+  "familyProfiles": "家庭成员资料",
+  "familySetupTitle": "设置您的家庭",
+  "familySetupDesc": "为每位家庭成员添加资料，以个性化膳食、家务和日程安排。",
+  "addFamilyMember": "添加家庭成员",
+  "profileName": "全名",
+  "profileRole": "角色",
+  "profileAge": "年龄（可选）",
+  "profileLanguage": "首选语言",
+  "dietaryPreferences": "饮食偏好",
+  "allergiesLabel": "过敏",
+  "mealTimes": "用餐时间",
+  "profileSaved": "资料已保存",
+  "profileDeleted": "资料已删除",
+  "reviewProfiles": "家庭成员",
+  "setupComplete": "设置完成",
+  "generateFromMealPlan": "从膳食计划生成",
+
+  "changeRole": "更改角色",
+  "removeMember": "移除成员",
+  "removeMemberConfirm": "确定要将此成员从家庭中移除吗？",
+  "memberRemoved": "成员已移除",
+  "memberUpdated": "成员已更新",
+  "admin": "管理员",
+  "adminAccess": "管理员权限",
+  "maxHelpersReached": "每个家庭最多2名帮手",
+  "selectRole": "选择角色",
+
+  "familyMembers": "家庭成员",
+  "appAccount": "已关联",
+  "pendingInvite": "已邀请",
+  "noAppAccount": "无账户",
+  "editProfile": "编辑资料",
+  "removeProfileLinkedWarning": "这也将撤销他们对此家庭的应用访问权限。",
+  "inviteEmailOrPhone": "电子邮件或电话（可选）",
+  "inviteEmailHint": "他们将收到邀请码以加入",
+
+  "noHouseholdSelected": "未选择家庭",
+  "forMemberOptional": "指定成员（可选）",
+  "everyone": "所有人",
+  "notesOptional": "备注（可选）",
+
+  "aiAskAboutChores": "问佳关于家务",
+  "aiAskAboutMeals": "问佳关于餐食",
+  "aiAskAboutGrocery": "问佳关于采购",
+  "aiAskAboutCalendar": "问佳关于日历",
+
+  "tomorrow": "明天",
+  "paused": "已暂停",
+  "archived": "已归档",
+  "deleteChoreConfirm": "确定要删除这个家务吗？",
+  "reasonOptional": "原因（可选）"
 }

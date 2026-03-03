@@ -41,8 +41,16 @@ class CalendarScreen extends ConsumerWidget {
         title: Text(l10n.calendar),
         actions: [
           IconButton(
+            icon: const Icon(Icons.smart_toy_outlined),
+            tooltip: l10n.aiAskAboutCalendar,
+            onPressed: () => context.push('/ai-chat', extra: {
+              'initialMessage': l10n.aiSuggestEvent,
+              'taskHint': 'calendar',
+            }),
+          ),
+          IconButton(
             icon: const Icon(Icons.today),
-            tooltip: 'Today',
+            tooltip: l10n.today,
             onPressed: () {
               final now = DateTime.now();
               ref.read(selectedDayProvider.notifier).state =
@@ -134,10 +142,12 @@ class CalendarScreen extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/calendar/create'),
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: (ref.watch(currentMemberProvider).valueOrNull?.canManage ?? false)
+          ? FloatingActionButton(
+              onPressed: () => context.push('/calendar/create'),
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 
@@ -245,7 +255,7 @@ class CalendarScreen extends ConsumerWidget {
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.access_time),
               title: Text(event.allDay
-                  ? 'All Day'
+                  ? l10n.allDay
                   : _formatTime(event.startTime)),
               subtitle: event.endTime != null && !event.allDay
                   ? Text('to ${_formatTime(event.endTime!)}')
@@ -346,7 +356,7 @@ class CalendarScreen extends ConsumerWidget {
         ref.invalidate(calendarEventsProvider);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Event deleted')),
+            SnackBar(content: Text(l10n.eventDeleted)),
           );
         }
       } catch (e) {

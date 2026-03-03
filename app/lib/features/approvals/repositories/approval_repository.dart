@@ -6,7 +6,7 @@ class ApprovalRepository {
   final ApiClient _api = ApiClient();
 
   Future<List<ApprovalRequest>> getApprovals(String householdId) async {
-    final response = await _api.get(ApiEndpoints.approvals(householdId));
+    final response = await _api.get(ApiEndpoints.approvalsAll(householdId));
     final list = response.data as List;
     return list
         .map((e) => ApprovalRequest.fromJson(e as Map<String, dynamic>))

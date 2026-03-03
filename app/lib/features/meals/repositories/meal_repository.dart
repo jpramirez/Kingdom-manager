@@ -88,10 +88,10 @@ class MealRepository {
   }
 
   Future<MealRequest> updateMealRequest(
-      String householdId, String requestId, Map<String, dynamic> data) async {
+      String householdId, String requestId, String newStatus) async {
     final response = await _api.patch(
         ApiEndpoints.mealRequest(householdId, requestId),
-        data: data);
+        queryParameters: {'new_status': newStatus});
     return MealRequest.fromJson(response.data);
   }
 

@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "Household",
+  "appTitle": "Jia",
   "login": "Login",
   "register": "Register",
   "email": "Email",
@@ -231,5 +231,57 @@
     "placeholders": {
       "percent": {"type": "int"}
     }
-  }
+  },
+
+  "familyProfiles": "Family Profiles",
+  "familySetupTitle": "Set Up Your Family",
+  "familySetupDesc": "Add profiles for each family member to personalize meals, chores, and schedules.",
+  "addFamilyMember": "Add Family Member",
+  "profileName": "Full Name",
+  "profileRole": "Role",
+  "profileAge": "Age (optional)",
+  "profileLanguage": "Preferred Language",
+  "dietaryPreferences": "Dietary Preferences",
+  "allergiesLabel": "Allergies",
+  "mealTimes": "Meal Times",
+  "profileSaved": "Profile saved",
+  "profileDeleted": "Profile deleted",
+  "reviewProfiles": "Family Members",
+  "setupComplete": "Setup Complete",
+  "generateFromMealPlan": "Generate from Meal Plan",
+
+  "changeRole": "Change Role",
+  "removeMember": "Remove Member",
+  "removeMemberConfirm": "Are you sure you want to remove this member from the household?",
+  "memberRemoved": "Member removed",
+  "memberUpdated": "Member updated",
+  "admin": "Admin",
+  "adminAccess": "Admin access",
+  "maxHelpersReached": "Maximum 2 helpers per household",
+  "selectRole": "Select Role",
+
+  "familyMembers": "Family Members",
+  "appAccount": "Linked",
+  "pendingInvite": "Invited",
+  "noAppAccount": "No account",
+  "editProfile": "Edit Profile",
+  "removeProfileLinkedWarning": "This will also revoke their app access to this household.",
+  "inviteEmailOrPhone": "Email or Phone (optional)",
+  "inviteEmailHint": "They'll get the invite code to join",
+
+  "noHouseholdSelected": "No household selected",
+  "forMemberOptional": "For member (optional)",
+  "everyone": "Everyone",
+  "notesOptional": "Notes (optional)",
+
+  "aiAskAboutChores": "Ask Jia about chores",
+  "aiAskAboutMeals": "Ask Jia about meals",
+  "aiAskAboutGrocery": "Ask Jia about grocery",
+  "aiAskAboutCalendar": "Ask Jia about calendar",
+
+  "tomorrow": "Tomorrow",
+  "paused": "Paused",
+  "archived": "Archived",
+  "deleteChoreConfirm": "Are you sure you want to delete this chore?",
+  "reasonOptional": "Reason (optional)"
 }

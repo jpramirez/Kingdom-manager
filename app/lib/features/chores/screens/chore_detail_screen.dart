@@ -17,6 +17,19 @@ class ChoreDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ChoreDetailScreenState extends ConsumerState<ChoreDetailScreen> {
+  Widget _backButton(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/chores');
+        }
+      },
+    );
+  }
+
   IconData _categoryIcon(ChoreCategory category) {
     switch (category) {
       case ChoreCategory.cleaning:
@@ -87,11 +100,11 @@ class _ChoreDetailScreenState extends ConsumerState<ChoreDetailScreen> {
       case ChoreStatus.skipped:
         return l10n.skipped;
       case ChoreStatus.active:
-        return 'Active';
+        return l10n.active;
       case ChoreStatus.paused:
-        return 'Paused';
+        return l10n.paused;
       case ChoreStatus.archived:
-        return 'Archived';
+        return l10n.archived;
     }
   }
 
@@ -130,15 +143,19 @@ class _ChoreDetailScreenState extends ConsumerState<ChoreDetailScreen> {
             children: [
               Text(l10n.selectMember),
               const SizedBox(height: 12),
-              ...members.map((member) => RadioListTile<String>(
+              RadioGroup<String>(
+                groupValue: selectedMemberId ?? '',
+                onChanged: (value) {
+                  setDialogState(() => selectedMemberId = value);
+                },
+                child: Column(
+                  children: members.map((member) => RadioListTile<String>(
                     title: Text(member.nickname ?? member.displayName),
                     subtitle: Text(member.role.replaceAll('_', ' ')),
                     value: member.userId,
-                    groupValue: selectedMemberId,
-                    onChanged: (value) {
-                      setDialogState(() => selectedMemberId = value);
-                    },
-                  )),
+                  )).toList(),
+                ),
+              ),
               const SizedBox(height: 12),
               ListTile(
                 leading: const Icon(Icons.calendar_today),
@@ -268,7 +285,7 @@ class _ChoreDetailScreenState extends ConsumerState<ChoreDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.delete),
-        content: const Text('Are you sure you want to delete this chore?'),
+        content: Text(l10n.deleteChoreConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -316,7 +333,10 @@ class _ChoreDetailScreenState extends ConsumerState<ChoreDetailScreen> {
 
     if (household == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.choreDetails)),
+        appBar: AppBar(
+          leading: _backButton(context),
+          title: Text(l10n.choreDetails),
+        ),
         body: const Center(child: Text('No household selected')),
       );
     }
@@ -326,24 +346,34 @@ class _ChoreDetailScreenState extends ConsumerState<ChoreDetailScreen> {
 
     return choresAsync.when(
       loading: () => Scaffold(
-        appBar: AppBar(title: Text(l10n.choreDetails)),
+        appBar: AppBar(
+          leading: _backButton(context),
+          title: Text(l10n.choreDetails),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => Scaffold(
-        appBar: AppBar(title: Text(l10n.choreDetails)),
+        appBar: AppBar(
+          leading: _backButton(context),
+          title: Text(l10n.choreDetails),
+        ),
         body: Center(child: Text('${l10n.error}: $e')),
       ),
       data: (chores) {
         final chore = chores.where((c) => c.id == widget.choreId).firstOrNull;
         if (chore == null) {
           return Scaffold(
-            appBar: AppBar(title: Text(l10n.choreDetails)),
+            appBar: AppBar(
+              leading: _backButton(context),
+              title: Text(l10n.choreDetails),
+            ),
             body: Center(child: Text(l10n.noResults)),
           );
         }
 
         return Scaffold(
           appBar: AppBar(
+            leading: _backButton(context),
             title: Text(l10n.choreDetails),
             actions: [
               IconButton(
@@ -581,11 +611,11 @@ class _AssignmentsList extends ConsumerWidget {
       case ChoreStatus.skipped:
         return l10n.skipped;
       case ChoreStatus.active:
-        return 'Active';
+        return l10n.active;
       case ChoreStatus.paused:
-        return 'Paused';
+        return l10n.paused;
       case ChoreStatus.archived:
-        return 'Archived';
+        return l10n.archived;
     }
   }
 

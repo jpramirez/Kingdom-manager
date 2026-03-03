@@ -1,6 +1,6 @@
 {
   "@@locale": "id",
-  "appTitle": "Manajemen Rumah Tangga",
+  "appTitle": "Jia",
   "login": "Masuk",
   "register": "Daftar",
   "email": "Email",
@@ -217,5 +217,57 @@
     "placeholders": {
       "percent": {"type": "int"}
     }
-  }
+  },
+
+  "familyProfiles": "Profil Keluarga",
+  "familySetupTitle": "Atur Keluarga Anda",
+  "familySetupDesc": "Tambahkan profil untuk setiap anggota keluarga guna menyesuaikan makanan, tugas rumah, dan jadwal.",
+  "addFamilyMember": "Tambah Anggota Keluarga",
+  "profileName": "Nama Lengkap",
+  "profileRole": "Peran",
+  "profileAge": "Usia (opsional)",
+  "profileLanguage": "Bahasa Pilihan",
+  "dietaryPreferences": "Preferensi Diet",
+  "allergiesLabel": "Alergi",
+  "mealTimes": "Waktu Makan",
+  "profileSaved": "Profil disimpan",
+  "profileDeleted": "Profil dihapus",
+  "reviewProfiles": "Anggota Keluarga",
+  "setupComplete": "Pengaturan Selesai",
+  "generateFromMealPlan": "Buat dari Rencana Makan",
+
+  "changeRole": "Ubah Peran",
+  "removeMember": "Hapus Anggota",
+  "removeMemberConfirm": "Apakah Anda yakin ingin menghapus anggota ini dari rumah tangga?",
+  "memberRemoved": "Anggota dihapus",
+  "memberUpdated": "Anggota diperbarui",
+  "admin": "Admin",
+  "adminAccess": "Akses admin",
+  "maxHelpersReached": "Maksimal 2 pembantu per rumah tangga",
+  "selectRole": "Pilih Peran",
+
+  "familyMembers": "Anggota Keluarga",
+  "appAccount": "Terhubung",
+  "pendingInvite": "Diundang",
+  "noAppAccount": "Tanpa akun",
+  "editProfile": "Edit Profil",
+  "removeProfileLinkedWarning": "Ini juga akan mencabut akses aplikasi mereka ke rumah tangga ini.",
+  "inviteEmailOrPhone": "Email atau Telepon (opsional)",
+  "inviteEmailHint": "Mereka akan mendapat kode undangan untuk bergabung",
+
+  "noHouseholdSelected": "Belum ada rumah tangga dipilih",
+  "forMemberOptional": "Untuk anggota (opsional)",
+  "everyone": "Semua orang",
+  "notesOptional": "Catatan (opsional)",
+
+  "aiAskAboutChores": "Tanya Jia tentang tugas rumah",
+  "aiAskAboutMeals": "Tanya Jia tentang makanan",
+  "aiAskAboutGrocery": "Tanya Jia tentang belanja",
+  "aiAskAboutCalendar": "Tanya Jia tentang kalender",
+
+  "tomorrow": "Besok",
+  "paused": "Dijeda",
+  "archived": "Diarsipkan",
+  "deleteChoreConfirm": "Apakah Anda yakin ingin menghapus tugas ini?",
+  "reasonOptional": "Alasan (opsional)"
 }
