@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, String, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -28,6 +28,7 @@ class HouseholdMember(Base):
     user_id: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False, index=True)
     role: Mapped[str] = mapped_column(String(20), nullable=False)  # family_adult, family_kid, helper
     nickname: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (

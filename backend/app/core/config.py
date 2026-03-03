@@ -4,12 +4,12 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # App
-    APP_NAME: str = "HouseHold Management API"
+    APP_NAME: str = "Jia API"
     API_V1_PREFIX: str = "/api/v1"
     DEBUG: bool = True
 
     # Database
-    DATABASE_URL: str = "postgresql+asyncpg://epyphite:LocalDev2024!@localhost:5432/household_mgmt"
+    DATABASE_URL: str = "postgresql+asyncpg://epyphite:LocalDev2024@localhost:5432/household_mgmt"
 
     # JWT
     SECRET_KEY: str = "dev-secret-key-change-in-production"
@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     CHIMERA_URL: str = "https://console.epy.digital/api/chat"
     CHIMERA_MODEL: str = "Qwen2.5-7B-Instruct-Q4_K_M.gguf"
     CHIMERA_API_KEY: str = "not-required"
-    CHIMERA_TIMEOUT_SECONDS: int = 120
+    CHIMERA_TIMEOUT_SECONDS: int = 300
     CHIMERA_MAX_TOKENS: int = 2048
 
     # Upload

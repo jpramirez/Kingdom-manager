@@ -100,6 +100,16 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/meals');
+            }
+          },
+        ),
         title: const Text('Create Recipe'),
       ),
       body: Form(

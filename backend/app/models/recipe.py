@@ -1,7 +1,7 @@
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, time, timezone
 
-from sqlalchemy import Date, DateTime, Integer, String, Text
+from sqlalchemy import Date, DateTime, Integer, String, Text, Time
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -36,6 +36,10 @@ class MealPlan(Base):
     recipe_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), nullable=True)
     custom_meal_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    profile_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), nullable=True)
+    meal_time: Mapped[time | None] = mapped_column(Time, nullable=True)
+    servings: Mapped[int | None] = mapped_column(Integer, nullable=True, default=1)
+    source_lang: Mapped[str | None] = mapped_column(String(5), nullable=True, default="en")
     created_by: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False)
 
 

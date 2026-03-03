@@ -47,7 +47,19 @@ class _JoinHouseholdScreenState extends ConsumerState<JoinHouseholdScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.joinHousehold)),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/household-setup');
+            }
+          },
+        ),
+        title: Text(l10n.joinHousehold),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(

@@ -128,7 +128,19 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.createEvent)),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/calendar');
+            }
+          },
+        ),
+        title: Text(l10n.createEvent),
+      ),
       body: Form(
         key: _formKey,
         child: ListView(

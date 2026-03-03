@@ -244,63 +244,68 @@ class _TodayChoreRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          InkWell(
-            onTap: isCompleted
-                ? null
-                : () async {
-                    try {
-                      await ref
-                          .read(choreRepositoryProvider)
-                          .completeAssignment(householdId, assignment.id);
-                      ref.invalidate(todayAssignmentsProvider(householdId));
-                      ref.invalidate(myAssignmentsProvider(householdId));
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(l10n.assignmentCompleted)),
-                        );
+    return InkWell(
+      onTap: () => context.push('/chores/${assignment.choreId}'),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            GestureDetector(
+              onTap: isCompleted
+                  ? null
+                  : () async {
+                      try {
+                        await ref
+                            .read(choreRepositoryProvider)
+                            .completeAssignment(householdId, assignment.id);
+                        ref.invalidate(todayAssignmentsProvider(householdId));
+                        ref.invalidate(myAssignmentsProvider(householdId));
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(l10n.assignmentCompleted)),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e')),
+                          );
+                        }
                       }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e')),
-                        );
-                      }
-                    }
-                  },
-            child: Icon(
-              isCompleted
-                  ? Icons.check_circle
-                  : Icons.radio_button_unchecked,
-              color: isCompleted ? Colors.green : Colors.grey,
-              size: 24,
+                    },
+              child: Icon(
+                isCompleted
+                    ? Icons.check_circle
+                    : Icons.radio_button_unchecked,
+                color: isCompleted ? Colors.green : Colors.grey,
+                size: 24,
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              assignment.choreTitle ?? 'Chore',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    decoration:
-                        isCompleted ? TextDecoration.lineThrough : null,
-                    color: isCompleted
-                        ? Theme.of(context).colorScheme.outline
-                        : null,
-                  ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                assignment.choreTitle ?? 'Chore',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      decoration:
+                          isCompleted ? TextDecoration.lineThrough : null,
+                      color: isCompleted
+                          ? Theme.of(context).colorScheme.outline
+                          : null,
+                    ),
+              ),
             ),
-          ),
-          if (assignment.assigneeName != null)
-            Text(
-              assignment.assigneeName!,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-            ),
-        ],
+            if (assignment.assigneeName != null)
+              Text(
+                assignment.assigneeName!,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+              ),
+            Icon(Icons.chevron_right,
+                size: 16, color: Theme.of(context).colorScheme.outline),
+          ],
+        ),
       ),
     );
   }
@@ -408,41 +413,49 @@ class _TodayMealsCard extends ConsumerWidget {
                   children: _mealTypes.map((type) {
                     final plan = lookup[type];
                     if (plan == null) return const SizedBox.shrink();
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _mealTypeIcon(type),
-                            size: 18,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          SizedBox(
-                            width: 72,
-                            child: Text(
-                              _mealTypeLabel(context, type),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelMedium
-                                  ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.outline,
-                                  ),
+                    return InkWell(
+                      onTap: () => plan.recipeId != null
+                          ? context.push('/meals/recipes/${plan.recipeId}')
+                          : context.push('/meals'),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Icon(
+                              _mealTypeIcon(type),
+                              size: 18,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              plan.displayName,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.w500),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: 72,
+                              child: Text(
+                                _mealTypeLabel(context, type),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelMedium
+                                    ?.copyWith(
+                                      color:
+                                          Theme.of(context).colorScheme.outline,
+                                    ),
+                              ),
                             ),
-                          ),
-                        ],
+                            Expanded(
+                              child: Text(
+                                plan.displayName,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.w500),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Icon(Icons.chevron_right,
+                                size: 14,
+                                color: Theme.of(context).colorScheme.outline),
+                          ],
+                        ),
                       ),
                     );
                   }).toList(),
@@ -509,34 +522,40 @@ class _PendingApprovalsCard extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 12),
-                ...approvals.take(3).map((approval) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.pending_actions,
-                            size: 18,
-                            color: Colors.orange,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              approval.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                ...approvals.take(3).map((approval) => InkWell(
+                      onTap: () => context.push('/approvals'),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.pending_actions,
+                              size: 18,
+                              color: Colors.orange,
                             ),
-                          ),
-                          Text(
-                            approval.requesterName ?? '',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
-                                ?.copyWith(
-                                  color:
-                                      Theme.of(context).colorScheme.outline,
-                                ),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                approval.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Text(
+                              approval.requesterName ?? '',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.outline,
+                                  ),
+                            ),
+                            Icon(Icons.chevron_right,
+                                size: 14,
+                                color: Theme.of(context).colorScheme.outline),
+                          ],
+                        ),
                       ),
                     )),
                 if (approvals.length > 3)

@@ -162,6 +162,16 @@ class _CreateChoreScreenState extends ConsumerState<CreateChoreScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/chores');
+            }
+          },
+        ),
         title: Text(l10n.createChore),
       ),
       body: Form(

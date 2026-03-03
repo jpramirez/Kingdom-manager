@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../models/ai_message.dart';
 
 class AiChatBubble extends StatelessWidget {
@@ -49,9 +50,9 @@ class AiChatBubble extends StatelessWidget {
             // Show action results for assistant messages
             if (message.isAssistant && message.actionResults.isNotEmpty) ...[
               const SizedBox(height: 8),
-              ...message.actionResults.map(
-                (action) => _ActionChip(action: action),
-              ),
+              ...message.actionResults
+                  .where((a) => a.status != 'skipped')
+                  .map((action) => _ActionChip(action: action)),
             ],
           ],
         ),
@@ -68,35 +69,66 @@ class _ActionChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isOk = action.isCompleted;
+    final route = action.navigationRoute;
 
     return Padding(
       padding: const EdgeInsets.only(top: 4),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: isOk
-              ? Colors.green.withValues(alpha: 0.15)
-              : Colors.red.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isOk ? Icons.check_circle_outline : Icons.error_outline,
-              size: 14,
-              color: isOk ? Colors.green : colorScheme.error,
-            ),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                action.summary ?? action.actionType ?? 'Action',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: isOk ? Colors.green : colorScheme.error,
-                    ),
+      child: InkWell(
+        onTap: route != null ? () => context.push(route) : null,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: isOk
+                ? Colors.green.withValues(alpha: 0.15)
+                : Colors.red.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isOk ? Icons.check_circle_outline : Icons.error_outline,
+                size: 16,
+                color: isOk ? Colors.green : colorScheme.error,
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      action.readableLabel,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: isOk ? Colors.green : colorScheme.error,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    if (action.summary != null &&
+                        action.summary != action.readableLabel)
+                      Text(
+                        action.summary!,
+                        style:
+                            Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  color: isOk
+                                      ? Colors.green.withValues(alpha: 0.8)
+                                      : colorScheme.error
+                                          .withValues(alpha: 0.8),
+                                ),
+                      ),
+                  ],
+                ),
+              ),
+              if (route != null) ...[
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.chevron_right,
+                  size: 14,
+                  color: isOk ? Colors.green : colorScheme.error,
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

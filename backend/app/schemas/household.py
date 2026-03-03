@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 class HouseholdCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     timezone: str = Field(default="Asia/Singapore", max_length=50)
+    creator_role: str = Field(default="family_adult", pattern=r"^(family_adult|helper)$")
 
 
 class HouseholdUpdateRequest(BaseModel):
@@ -35,6 +36,7 @@ class MemberResponse(BaseModel):
     user_id: str
     role: str
     nickname: str | None = None
+    is_admin: bool = False
     display_name: str  # from user
     email: str  # from user
     avatar_url: str | None = None  # from user
@@ -44,3 +46,4 @@ class MemberResponse(BaseModel):
 class MemberUpdateRequest(BaseModel):
     role: str | None = Field(None, pattern=r"^(family_adult|family_kid|helper)$")
     nickname: str | None = Field(None, max_length=50)
+    is_admin: bool | None = None

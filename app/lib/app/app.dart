@@ -6,8 +6,8 @@ import '../features/settings/providers/locale_provider.dart';
 import '../l10n/generated/app_localizations.dart';
 import 'theme.dart';
 
-class HouseholdApp extends ConsumerWidget {
-  const HouseholdApp({super.key});
+class JiaApp extends ConsumerWidget {
+  const JiaApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -15,7 +15,7 @@ class HouseholdApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      title: 'Household',
+      title: 'Jia',
       debugShowCheckedModeBanner: false,
 
       // Theme

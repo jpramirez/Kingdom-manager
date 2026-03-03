@@ -6,8 +6,9 @@ from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.recipe import MealPlan, MealRequest, Recipe
-from ..models.household import HouseholdMember
+from ..models.family_profile import FamilyProfile
 from ..models.user import User
+from .permissions import require_membership
 from ..schemas.meal import (
     MealPlanBatchRequest,
     MealPlanResponse,
@@ -25,7 +26,7 @@ from ..schemas.meal import (
 async def create_recipe(
     db: AsyncSession, household_id: str, data: RecipeCreateRequest, user: User
 ) -> RecipeResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     recipe = Recipe(
         household_id=household_id,
         name=data.name,
@@ -45,7 +46,7 @@ async def create_recipe(
 async def list_recipes(
     db: AsyncSession, household_id: str, user: User
 ) -> list[RecipeResponse]:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     result = await db.execute(
         select(Recipe)
         .where(Recipe.household_id == household_id)
@@ -57,7 +58,7 @@ async def list_recipes(
 async def get_recipe(
     db: AsyncSession, household_id: str, recipe_id: str, user: User
 ) -> RecipeResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     recipe = await _get_recipe_or_404(db, household_id, recipe_id)
     return _recipe_to_response(recipe)
 
@@ -65,7 +66,7 @@ async def get_recipe(
 async def update_recipe(
     db: AsyncSession, household_id: str, recipe_id: str, data: RecipeUpdateRequest, user: User
 ) -> RecipeResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     recipe = await _get_recipe_or_404(db, household_id, recipe_id)
     update_data = data.model_dump(exclude_unset=True)
     if "tags" in update_data and update_data["tags"] is not None:
@@ -79,7 +80,7 @@ async def update_recipe(
 async def delete_recipe(
     db: AsyncSession, household_id: str, recipe_id: str, user: User
 ) -> None:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     recipe = await _get_recipe_or_404(db, household_id, recipe_id)
     await db.delete(recipe)
 
@@ -90,7 +91,7 @@ async def delete_recipe(
 async def get_meal_plan(
     db: AsyncSession, household_id: str, start: str, end: str, user: User
 ) -> list[MealPlanResponse]:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     start_date = date_type.fromisoformat(start)
     end_date = date_type.fromisoformat(end)
     result = await db.execute(
@@ -111,6 +112,12 @@ async def get_meal_plan(
                 select(Recipe.name).where(Recipe.id == mp.recipe_id)
             )
             recipe_name = recipe_result.scalar_one_or_none()
+        profile_name = None
+        if mp.profile_id:
+            profile_result = await db.execute(
+                select(FamilyProfile.name).where(FamilyProfile.id == mp.profile_id)
+            )
+            profile_name = profile_result.scalar_one_or_none()
         responses.append(
             MealPlanResponse(
                 id=mp.id,
@@ -120,6 +127,9 @@ async def get_meal_plan(
                 recipe_id=mp.recipe_id,
                 custom_meal_name=mp.custom_meal_name,
                 notes=mp.notes,
+                profile_id=mp.profile_id,
+                profile_name=profile_name,
+                servings=mp.servings,
                 created_by=mp.created_by,
                 recipe_name=recipe_name,
             )
@@ -130,17 +140,20 @@ async def get_meal_plan(
 async def set_meal_plan(
     db: AsyncSession, household_id: str, data: MealPlanBatchRequest, user: User
 ) -> list[MealPlanResponse]:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     results = []
     for entry in data.entries:
-        # Upsert: delete existing for same date+meal_type, then insert
-        existing = await db.execute(
-            select(MealPlan).where(
-                MealPlan.household_id == household_id,
-                MealPlan.date == entry.date,
-                MealPlan.meal_type == entry.meal_type,
-            )
-        )
+        # Upsert: delete existing for same date+meal_type+profile_id, then insert
+        filters = [
+            MealPlan.household_id == household_id,
+            MealPlan.date == entry.date,
+            MealPlan.meal_type == entry.meal_type,
+        ]
+        if entry.profile_id:
+            filters.append(MealPlan.profile_id == entry.profile_id)
+        else:
+            filters.append(MealPlan.profile_id.is_(None))
+        existing = await db.execute(select(MealPlan).where(*filters))
         old = existing.scalar_one_or_none()
         if old:
             await db.delete(old)
@@ -153,6 +166,8 @@ async def set_meal_plan(
             recipe_id=entry.recipe_id,
             custom_meal_name=entry.custom_meal_name,
             notes=entry.notes,
+            profile_id=entry.profile_id,
+            servings=entry.servings,
             created_by=user.id,
         )
         db.add(mp)
@@ -165,6 +180,13 @@ async def set_meal_plan(
             )
             recipe_name = recipe_result.scalar_one_or_none()
 
+        profile_name = None
+        if mp.profile_id:
+            profile_result = await db.execute(
+                select(FamilyProfile.name).where(FamilyProfile.id == mp.profile_id)
+            )
+            profile_name = profile_result.scalar_one_or_none()
+
         results.append(
             MealPlanResponse(
                 id=mp.id,
@@ -174,6 +196,9 @@ async def set_meal_plan(
                 recipe_id=mp.recipe_id,
                 custom_meal_name=mp.custom_meal_name,
                 notes=mp.notes,
+                profile_id=mp.profile_id,
+                profile_name=profile_name,
+                servings=mp.servings,
                 created_by=mp.created_by,
                 recipe_name=recipe_name,
             )
@@ -187,7 +212,7 @@ async def set_meal_plan(
 async def create_meal_request(
     db: AsyncSession, household_id: str, data: MealRequestCreate, user: User
 ) -> MealRequestResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     req = MealRequest(
         household_id=household_id,
         requested_by=user.id,
@@ -214,7 +239,7 @@ async def create_meal_request(
 async def list_meal_requests(
     db: AsyncSession, household_id: str, user: User
 ) -> list[MealRequestResponse]:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     result = await db.execute(
         select(MealRequest)
         .where(MealRequest.household_id == household_id)
@@ -247,7 +272,7 @@ async def list_meal_requests(
 async def update_meal_request(
     db: AsyncSession, household_id: str, request_id: str, new_status: str, user: User
 ) -> MealRequestResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     result = await db.execute(
         select(MealRequest).where(
             MealRequest.id == request_id,
@@ -314,16 +339,3 @@ async def _get_recipe_or_404(db: AsyncSession, household_id: str, recipe_id: str
     if not recipe:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recipe not found")
     return recipe
-
-
-async def _require_membership(db: AsyncSession, household_id: str, user_id: str) -> HouseholdMember:
-    result = await db.execute(
-        select(HouseholdMember).where(
-            HouseholdMember.household_id == household_id,
-            HouseholdMember.user_id == user_id,
-        )
-    )
-    member = result.scalar_one_or_none()
-    if not member:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a member of this household")
-    return member

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import '../../../l10n/generated/app_localizations.dart';
+import '../../family_profiles/providers/family_profile_provider.dart';
 import '../../household/providers/household_provider.dart';
 import '../models/recipe.dart';
 import '../providers/meal_provider.dart';
@@ -12,23 +15,36 @@ class MealsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final household = ref.watch(activeHouseholdProvider).household;
+    final l10n = AppLocalizations.of(context)!;
 
     if (household == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Meals')),
-        body: const Center(child: Text('No household selected')),
+        appBar: AppBar(title: Text(l10n.meals)),
+        body: Center(child: Text(l10n.noHouseholdSelected)),
       );
     }
+
+    final canManage = ref.watch(currentMemberProvider).valueOrNull?.canManage ?? false;
 
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Meals'),
-          bottom: const TabBar(
+          title: Text(l10n.meals),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.smart_toy_outlined),
+              tooltip: l10n.aiAskAboutMeals,
+              onPressed: () => context.push('/ai-chat', extra: {
+                'initialMessage': l10n.aiSuggestMealPlan,
+                'taskHint': 'meal_planning',
+              }),
+            ),
+          ],
+          bottom: TabBar(
             tabs: [
-              Tab(text: 'Recipes'),
-              Tab(text: 'Meal Plan'),
+              Tab(text: l10n.recipes),
+              Tab(text: l10n.mealPlan),
             ],
           ),
         ),
@@ -38,10 +54,12 @@ class MealsScreen extends ConsumerWidget {
             _MealPlanTab(householdId: household.id),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => context.push('/meals/create'),
-          child: const Icon(Icons.add),
-        ),
+        floatingActionButton: canManage
+            ? FloatingActionButton(
+                onPressed: () => context.push('/meals/create'),
+                child: const Icon(Icons.add),
+              )
+            : null,
       ),
     );
   }
@@ -54,6 +72,7 @@ class _RecipesTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final recipesAsync = ref.watch(recipesProvider(householdId));
+    final l10n = AppLocalizations.of(context)!;
 
     return recipesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -61,11 +80,11 @@ class _RecipesTab extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Error: $e'),
+            Text('${l10n.error}: $e'),
             const SizedBox(height: 8),
             FilledButton(
               onPressed: () => ref.invalidate(recipesProvider(householdId)),
-              child: const Text('Retry'),
+              child: Text(l10n.retry),
             ),
           ],
         ),
@@ -80,12 +99,12 @@ class _RecipesTab extends ConsumerWidget {
                     size: 64,
                     color: Theme.of(context).colorScheme.outline),
                 const SizedBox(height: 16),
-                Text('No recipes yet',
+                Text(l10n.noRecipesYet,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Theme.of(context).colorScheme.outline,
                         )),
                 const SizedBox(height: 8),
-                Text('Tap + to add your first recipe',
+                Text(l10n.addFirstRecipe,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.outline,
                         )),
@@ -169,15 +188,16 @@ class _MealPlanTabState extends ConsumerState<_MealPlanTab> {
   }
 
   String _mealTypeLabel(String type) {
+    final l10n = AppLocalizations.of(context)!;
     switch (type) {
       case 'breakfast':
-        return 'Breakfast';
+        return l10n.breakfast;
       case 'lunch':
-        return 'Lunch';
+        return l10n.lunch;
       case 'dinner':
-        return 'Dinner';
+        return l10n.dinner;
       case 'snack':
-        return 'Snack';
+        return l10n.snack;
       default:
         return type;
     }
@@ -198,9 +218,9 @@ class _MealPlanTabState extends ConsumerState<_MealPlanTab> {
     }
   }
 
-  String _weekdayShort(int weekday) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days[weekday - 1];
+  String _weekdayShort(DateTime date) {
+    final locale = Localizations.localeOf(context).toString();
+    return DateFormat.E(locale).format(date);
   }
 
   String _formatWeekRange() {
@@ -209,10 +229,15 @@ class _MealPlanTabState extends ConsumerState<_MealPlanTab> {
   }
 
   Future<void> _showAddMealDialog(DateTime date, String mealType) async {
+    final l10n = AppLocalizations.of(context)!;
     final recipesAsync = ref.read(recipesProvider(widget.householdId));
     final recipes = recipesAsync.valueOrNull ?? [];
+    final profilesAsync =
+        ref.read(familyProfilesProvider(widget.householdId));
+    final profiles = profilesAsync.valueOrNull ?? [];
 
     String? selectedRecipeId;
+    String? selectedProfileId;
     final customNameController = TextEditingController();
     final notesController = TextEditingController();
     bool useCustom = false;
@@ -222,7 +247,7 @@ class _MealPlanTabState extends ConsumerState<_MealPlanTab> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           title: Text(
-              'Add ${_mealTypeLabel(mealType)} - ${_weekdayShort(date.weekday)} ${date.day}/${date.month}'),
+              '${l10n.add} ${_mealTypeLabel(mealType)} - ${_weekdayShort(date)} ${date.day}/${date.month}'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -230,7 +255,7 @@ class _MealPlanTabState extends ConsumerState<_MealPlanTab> {
                 // Toggle: recipe vs custom
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Custom meal name'),
+                  title: Text(l10n.customMealName),
                   value: useCustom,
                   onChanged: (v) => setDialogState(() => useCustom = v),
                 ),
@@ -239,18 +264,18 @@ class _MealPlanTabState extends ConsumerState<_MealPlanTab> {
                 if (useCustom)
                   TextField(
                     controller: customNameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Meal name',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.mealName,
+                      border: const OutlineInputBorder(),
                     ),
                     autofocus: true,
                   )
                 else
                   DropdownButtonFormField<String>(
                     value: selectedRecipeId,
-                    decoration: const InputDecoration(
-                      labelText: 'Select recipe',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.selectRecipe,
+                      border: const OutlineInputBorder(),
                     ),
                     items: recipes.map((r) => DropdownMenuItem(
                       value: r.id,
@@ -260,12 +285,36 @@ class _MealPlanTabState extends ConsumerState<_MealPlanTab> {
                         setDialogState(() => selectedRecipeId = v),
                   ),
 
+                if (profiles.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: selectedProfileId,
+                    decoration: InputDecoration(
+                      labelText: l10n.forMemberOptional,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.person),
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text(l10n.everyone),
+                      ),
+                      ...profiles.map((p) => DropdownMenuItem(
+                            value: p.id,
+                            child: Text(p.name),
+                          )),
+                    ],
+                    onChanged: (v) =>
+                        setDialogState(() => selectedProfileId = v),
+                  ),
+                ],
+
                 const SizedBox(height: 12),
                 TextField(
                   controller: notesController,
-                  decoration: const InputDecoration(
-                    labelText: 'Notes (optional)',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.notesOptional,
+                    border: const OutlineInputBorder(),
                   ),
                 ),
               ],
@@ -274,7 +323,7 @@ class _MealPlanTabState extends ConsumerState<_MealPlanTab> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: () async {
@@ -298,6 +347,9 @@ class _MealPlanTabState extends ConsumerState<_MealPlanTab> {
                   if (notesController.text.trim().isNotEmpty) {
                     entry['notes'] = notesController.text.trim();
                   }
+                  if (selectedProfileId != null) {
+                    entry['profile_id'] = selectedProfileId;
+                  }
 
                   await ref
                       .read(mealRepositoryProvider)
@@ -306,12 +358,12 @@ class _MealPlanTabState extends ConsumerState<_MealPlanTab> {
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
+                      SnackBar(content: Text('${l10n.error}: $e')),
                     );
                   }
                 }
               },
-              child: const Text('Add'),
+              child: Text(l10n.add),
             ),
           ],
         ),
@@ -322,6 +374,7 @@ class _MealPlanTabState extends ConsumerState<_MealPlanTab> {
   @override
   Widget build(BuildContext context) {
     final planAsync = ref.watch(mealPlanProvider(_params));
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       children: [
@@ -363,23 +416,26 @@ class _MealPlanTabState extends ConsumerState<_MealPlanTab> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Error: $e'),
+                  Text('${l10n.error}: $e'),
                   const SizedBox(height: 8),
                   FilledButton(
                     onPressed: () =>
                         ref.invalidate(mealPlanProvider(_params)),
-                    child: const Text('Retry'),
+                    child: Text(l10n.retry),
                   ),
                 ],
               ),
             ),
             data: (plans) {
-              // Build a lookup: date string -> meal_type -> MealPlan
-              final lookup = <String, Map<String, MealPlan>>{};
+              // Build a lookup: date string -> meal_type -> list of MealPlans
+              final lookup = <String, Map<String, List<MealPlan>>>{};
               for (final plan in plans) {
                 final dateKey =
                     plan.date.toIso8601String().split('T').first;
-                lookup.putIfAbsent(dateKey, () => {})[plan.mealType] = plan;
+                lookup
+                    .putIfAbsent(dateKey, () => {})
+                    .putIfAbsent(plan.mealType, () => [])
+                    .add(plan);
               }
 
               return RefreshIndicator(
@@ -400,7 +456,7 @@ class _MealPlanTabState extends ConsumerState<_MealPlanTab> {
 
                     return _DayCard(
                       date: date,
-                      weekdayLabel: _weekdayShort(date.weekday),
+                      weekdayLabel: _weekdayShort(date),
                       isToday: isToday,
                       mealTypes: _mealTypes,
                       dayPlans: dayPlans,
@@ -432,7 +488,7 @@ class _DayCard extends StatelessWidget {
   final String weekdayLabel;
   final bool isToday;
   final List<String> mealTypes;
-  final Map<String, MealPlan> dayPlans;
+  final Map<String, List<MealPlan>> dayPlans;
   final String Function(String) mealTypeLabel;
   final IconData Function(String) mealTypeIcon;
   final void Function(String) onAddMeal;
@@ -450,6 +506,8 @@ class _DayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       color: isToday
@@ -482,7 +540,7 @@ class _DayCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      'Today',
+                      l10n.today,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color:
                                 Theme.of(context).colorScheme.onPrimary,
@@ -497,7 +555,8 @@ class _DayCard extends StatelessWidget {
 
             // Meal slots
             ...mealTypes.map((type) {
-              final plan = dayPlans[type];
+              final plans = dayPlans[type];
+              final hasMeals = plans != null && plans.isNotEmpty;
 
               return InkWell(
                 onTap: () => onAddMeal(type),
@@ -508,7 +567,7 @@ class _DayCard extends StatelessWidget {
                       Icon(
                         mealTypeIcon(type),
                         size: 18,
-                        color: plan != null
+                        color: hasMeals
                             ? Theme.of(context).colorScheme.primary
                             : Theme.of(context).colorScheme.outline,
                       ),
@@ -526,20 +585,20 @@ class _DayCard extends StatelessWidget {
                         ),
                       ),
                       Expanded(
-                        child: plan != null
+                        child: hasMeals
                             ? Text(
-                                plan.displayName,
+                                plans.map((p) => p.displayName).join(', '),
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.w500,
                                     ),
-                                maxLines: 1,
+                                maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               )
                             : Text(
-                                'Tap to add',
+                                l10n.tapToAdd,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
@@ -552,7 +611,7 @@ class _DayCard extends StatelessWidget {
                                     ),
                               ),
                       ),
-                      if (plan?.notes != null && plan!.notes!.isNotEmpty)
+                      if (hasMeals && plans.any((p) => p.notes != null && p.notes!.isNotEmpty))
                         Icon(
                           Icons.notes,
                           size: 16,

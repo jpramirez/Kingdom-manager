@@ -17,6 +17,7 @@ class CreateHouseholdScreen extends ConsumerStatefulWidget {
 
 class _CreateHouseholdScreenState extends ConsumerState<CreateHouseholdScreen> {
   final _nameController = TextEditingController();
+  String _creatorRole = 'helper';
   bool _loading = false;
 
   @override
@@ -31,7 +32,10 @@ class _CreateHouseholdScreenState extends ConsumerState<CreateHouseholdScreen> {
     try {
       final household = await ref
           .read(householdRepositoryProvider)
-          .createHousehold(name: _nameController.text.trim());
+          .createHousehold(
+            name: _nameController.text.trim(),
+            creatorRole: _creatorRole,
+          );
       await ref.read(activeHouseholdProvider.notifier).setActive(household);
       ref.invalidate(householdsProvider);
       if (mounted) {
@@ -109,7 +113,7 @@ class _CreateHouseholdScreenState extends ConsumerState<CreateHouseholdScreen> {
           FilledButton(
             onPressed: () {
               Navigator.of(ctx).pop();
-              context.go('/');
+              context.go('/family-setup?hid=${household.id}');
             },
             child: Text(l10n.done),
           ),
@@ -122,7 +126,19 @@ class _CreateHouseholdScreenState extends ConsumerState<CreateHouseholdScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.createHousehold)),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/household-setup');
+            }
+          },
+        ),
+        title: Text(l10n.createHousehold),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -140,6 +156,28 @@ class _CreateHouseholdScreenState extends ConsumerState<CreateHouseholdScreen> {
               ),
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _create(),
+            ),
+            const SizedBox(height: 16),
+            Text(l10n.selectRole,
+                style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            SegmentedButton<String>(
+              segments: [
+                ButtonSegment(
+                  value: 'helper',
+                  label: Text(l10n.helper),
+                  icon: const Icon(Icons.support_agent),
+                ),
+                ButtonSegment(
+                  value: 'family_adult',
+                  label: Text(l10n.familyAdult),
+                  icon: const Icon(Icons.person),
+                ),
+              ],
+              selected: {_creatorRole},
+              onSelectionChanged: (selection) {
+                setState(() => _creatorRole = selection.first);
+              },
             ),
             const SizedBox(height: 24),
             FilledButton(

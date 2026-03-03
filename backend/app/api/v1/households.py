@@ -82,6 +82,7 @@ async def join_household(
         user_id=member.user_id,
         role=member.role,
         nickname=member.nickname,
+        is_admin=member.is_admin,
         display_name=current_user.display_name,
         email=current_user.email,
         avatar_url=current_user.avatar_url,
@@ -121,7 +122,20 @@ async def remove_member(
     return MessageResponse(message="Member removed")
 
 
-# ── Family Profiles ────────────────────────────────────────────────
+# ── Family (unified) ──────────────────────────────────────────────
+
+
+@router.get("/{household_id}/family", response_model=list[FamilyProfileResponse])
+async def list_family(
+    household_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Unified endpoint: all family profiles enriched with linked user data."""
+    return await family_profile_service.list_profiles_enriched(db, household_id)
+
+
+# ── Family Profiles (legacy) ─────────────────────────────────────
 
 
 @router.get("/{household_id}/profiles", response_model=list[FamilyProfileResponse])

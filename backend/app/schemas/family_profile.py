@@ -11,6 +11,8 @@ class FamilyProfileCreate(BaseModel):
     dietary_prefs: list[str] = Field(default_factory=list)
     allergies: list[str] = Field(default_factory=list)
     meal_times: dict[str, str] = Field(default_factory=dict)  # {"breakfast": "07:00", ...}
+    invite_email: str | None = Field(None, max_length=255)
+    invite_phone: str | None = Field(None, max_length=20)
 
 
 class FamilyProfileUpdate(BaseModel):
@@ -21,6 +23,9 @@ class FamilyProfileUpdate(BaseModel):
     dietary_prefs: list[str] | None = None
     allergies: list[str] | None = None
     meal_times: dict[str, str] | None = None
+    invite_email: str | None = None
+    invite_phone: str | None = None
+    is_admin: bool | None = None
 
 
 class FamilyProfileResponse(BaseModel):
@@ -36,6 +41,12 @@ class FamilyProfileResponse(BaseModel):
     avatar_url: str | None = None
     linked_user_id: str | None = None
     linked_member_id: str | None = None
+    invite_email: str | None = None
+    invite_phone: str | None = None
+    is_admin: bool = False
+    linked_user_email: str | None = None
+    linked_user_display_name: str | None = None
+    linked_user_avatar_url: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

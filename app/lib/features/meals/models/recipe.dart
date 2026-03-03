@@ -99,6 +99,9 @@ class MealPlan {
   final String? recipeId;
   final String? customMealName;
   final String? notes;
+  final String? profileId;
+  final String? profileName;
+  final int? servings;
   final String createdBy;
   final String? recipeName;
 
@@ -110,11 +113,20 @@ class MealPlan {
     this.recipeId,
     this.customMealName,
     this.notes,
+    this.profileId,
+    this.profileName,
+    this.servings,
     required this.createdBy,
     this.recipeName,
   });
 
-  String get displayName => recipeName ?? customMealName ?? '';
+  String get displayName {
+    final name = recipeName ?? customMealName ?? '';
+    if (profileName != null && profileName!.isNotEmpty) {
+      return '$name ($profileName)';
+    }
+    return name;
+  }
 
   factory MealPlan.fromJson(Map<String, dynamic> json) {
     return MealPlan(
@@ -125,6 +137,9 @@ class MealPlan {
       recipeId: json['recipe_id'] as String?,
       customMealName: json['custom_meal_name'] as String?,
       notes: json['notes'] as String?,
+      profileId: json['profile_id'] as String?,
+      profileName: json['profile_name'] as String?,
+      servings: json['servings'] as int?,
       createdBy: json['created_by'] as String,
       recipeName: json['recipe_name'] as String?,
     );
@@ -137,6 +152,8 @@ class MealPlan {
       if (recipeId != null) 'recipe_id': recipeId,
       if (customMealName != null) 'custom_meal_name': customMealName,
       if (notes != null) 'notes': notes,
+      if (profileId != null) 'profile_id': profileId,
+      if (servings != null) 'servings': servings,
     };
   }
 
@@ -146,6 +163,9 @@ class MealPlan {
     String? recipeId,
     String? customMealName,
     String? notes,
+    String? profileId,
+    String? profileName,
+    int? servings,
     String? recipeName,
   }) {
     return MealPlan(
@@ -156,6 +176,9 @@ class MealPlan {
       recipeId: recipeId ?? this.recipeId,
       customMealName: customMealName ?? this.customMealName,
       notes: notes ?? this.notes,
+      profileId: profileId ?? this.profileId,
+      profileName: profileName ?? this.profileName,
+      servings: servings ?? this.servings,
       createdBy: createdBy,
       recipeName: recipeName ?? this.recipeName,
     );

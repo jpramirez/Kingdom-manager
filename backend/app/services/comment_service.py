@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.config import settings
 from ..models.comment import Attachment, Comment
-from ..models.household import HouseholdMember
 from ..models.user import User
+from .permissions import require_membership
 from ..schemas.comment import AttachmentResponse, CommentCreateRequest, CommentResponse
 
 
@@ -21,7 +21,7 @@ async def create_comment(
     data: CommentCreateRequest,
     user: User,
 ) -> CommentResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
 
     comment = Comment(
         household_id=household_id,
@@ -54,7 +54,7 @@ async def list_comments(
     entity_id: str,
     user: User,
 ) -> list[CommentResponse]:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
 
     result = await db.execute(
         select(Comment, User)
@@ -116,7 +116,7 @@ async def delete_comment(
     comment_id: str,
     user: User,
 ) -> None:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
 
     result = await db.execute(
         select(Comment).where(
@@ -128,10 +128,10 @@ async def delete_comment(
     if not comment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Comment not found")
 
-    # Only the author or an adult can delete
+    # Only the author or an adult/admin can delete
     if comment.user_id != user.id:
-        member = await _get_member(db, household_id, user.id)
-        if member.role != "family_adult":
+        member = await require_membership(db, household_id, user.id)
+        if member.role != "family_adult" and not member.is_admin:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot delete others' comments")
 
     await db.delete(comment)
@@ -145,7 +145,7 @@ async def upload_attachment(
     user: User,
     file: UploadFile,
 ) -> AttachmentResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
 
     # Validate file type
     allowed_types = {"image/jpeg", "image/png", "image/gif", "image/webp", "image/heic", "application/pdf"}
@@ -210,7 +210,7 @@ async def list_attachments(
     entity_id: str,
     user: User,
 ) -> list[AttachmentResponse]:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
 
     result = await db.execute(
         select(Attachment).where(
@@ -234,20 +234,3 @@ async def list_attachments(
         )
         for a in result.scalars().all()
     ]
-
-
-async def _require_membership(db: AsyncSession, household_id: str, user_id: str) -> HouseholdMember:
-    result = await db.execute(
-        select(HouseholdMember).where(
-            HouseholdMember.household_id == household_id,
-            HouseholdMember.user_id == user_id,
-        )
-    )
-    member = result.scalar_one_or_none()
-    if not member:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a member of this household")
-    return member
-
-
-async def _get_member(db: AsyncSession, household_id: str, user_id: str) -> HouseholdMember:
-    return await _require_membership(db, household_id, user_id)

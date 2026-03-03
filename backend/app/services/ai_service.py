@@ -14,9 +14,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.database import async_session
 from ..models.ai_models import AiConversation, AiMessage, HouseholdMemory
-from ..models.household import HouseholdMember
 from ..models.user import User
+from .permissions import require_membership
 from .action_executor import ActionExecutor
+from .context_augmenter import ContextAugmenter
 from .household_context import HouseholdContextManager
 from .llm_client import call_chimera
 from .prompts.system_prompts import build_system_prompt
@@ -34,7 +35,7 @@ async def create_conversation(
     conversation_type: str = "general",
 ) -> AiConversation:
     """Create a new AI conversation."""
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     conversation = AiConversation(
         household_id=household_id,
         user_id=user.id,
@@ -104,7 +105,7 @@ async def send_message(
 
     Returns: {"message": AiMessage, "actions": list[dict]}
     """
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
 
     # 1. Verify conversation exists and belongs to user
     result = await db.execute(
@@ -141,13 +142,20 @@ async def send_message(
     else:
         system_prompt = build_system_prompt(context, task_type)
 
+    # 4.5 Augment context based on user's question (pre-query for 7B model)
+    augmenter = ContextAugmenter(db, household_id)
+    additional_context = await augmenter.augment(content, context)
+    if additional_context:
+        system_prompt += additional_context
+
     # 5. Assemble full messages array
     messages = [{"role": "system", "content": system_prompt}]
     messages.extend(history)
     messages.append({"role": "user", "content": content})
 
     # 6. Call Chimera LLM
-    llm_response = await call_chimera(messages)
+    max_tokens = 1024 if task_type == "meal_planning" else None
+    llm_response = await call_chimera(messages, max_tokens=max_tokens)
 
     # 7. Parse response for actions
     clean_text, actions = parse_ai_response(llm_response["content"])
@@ -221,11 +229,11 @@ async def start_onboarding(
     Start AI onboarding for a new household.
     Returns the conversation and the AI's opening message.
     """
-    member = await _require_membership(db, household_id, user.id)
-    if member.role != "family_adult":
+    member = await require_membership(db, household_id, user.id)
+    if member.role != "family_adult" and not member.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only family adults can start onboarding",
+            detail="Only family adults or admins can start onboarding",
         )
 
     # Check no active onboarding exists
@@ -409,25 +417,6 @@ async def get_memory_count(db: AsyncSession, household_id: str) -> int:
 
 
 # ── Helpers ─────────────────────────────────────────────────────────
-
-
-async def _require_membership(
-    db: AsyncSession, household_id: str, user_id: str
-) -> HouseholdMember:
-    """Check user is a household member."""
-    result = await db.execute(
-        select(HouseholdMember).where(
-            HouseholdMember.household_id == household_id,
-            HouseholdMember.user_id == user_id,
-        )
-    )
-    member = result.scalar_one_or_none()
-    if not member:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not a member of this household",
-        )
-    return member
 
 
 async def _handle_memory_update(

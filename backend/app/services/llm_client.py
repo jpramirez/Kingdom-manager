@@ -38,6 +38,11 @@ async def call_chimera(
     else:
         payload["max_tokens"] = settings.CHIMERA_MAX_TOKENS
 
+    logger.info("Calling Chimera: model=%s, max_tokens=%s, timeout=%ds, prompt_chars=%d",
+                payload.get("model"), payload.get("max_tokens"),
+                settings.CHIMERA_TIMEOUT_SECONDS,
+                sum(len(m.get("content", "")) for m in messages))
+
     try:
         async with httpx.AsyncClient(timeout=settings.CHIMERA_TIMEOUT_SECONDS) as client:
             resp = await client.post(

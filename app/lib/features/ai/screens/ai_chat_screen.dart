@@ -10,8 +10,15 @@ import '../widgets/ai_typing_indicator.dart';
 
 class AiChatScreen extends ConsumerStatefulWidget {
   final String? conversationId;
+  final String? initialMessage;
+  final String? taskHint;
 
-  const AiChatScreen({super.key, this.conversationId});
+  const AiChatScreen({
+    super.key,
+    this.conversationId,
+    this.initialMessage,
+    this.taskHint,
+  });
 
   @override
   ConsumerState<AiChatScreen> createState() => _AiChatScreenState();
@@ -69,10 +76,16 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
     // Initialize conversation on first build
     if (!_initialized) {
       _initialized = true;
-      Future.microtask(() {
-        ref.read(aiChatProvider(householdId).notifier).startConversation(
+      Future.microtask(() async {
+        await ref.read(aiChatProvider(householdId).notifier).startConversation(
               conversationId: widget.conversationId,
+              taskHint: widget.taskHint,
             );
+        if (widget.initialMessage != null && widget.initialMessage!.isNotEmpty) {
+          ref.read(aiChatProvider(householdId).notifier)
+              .sendMessage(widget.initialMessage!, taskHint: widget.taskHint);
+          _scrollToBottom();
+        }
       });
     }
 
@@ -101,7 +114,13 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
         title: Text(chatState.conversation?.title ?? l10n.aiAssistant),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
+          },
         ),
         actions: [
           if (chatState.conversation != null)
@@ -137,6 +156,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : chatState.messages.isEmpty
                     ? _EmptyState(
+                        taskHint: widget.taskHint,
                         onSuggestion: (text) {
                           _textController.text = text;
                           _sendMessage(householdId);
@@ -163,6 +183,7 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: AiSuggestionChips(
+                taskHint: widget.taskHint,
                 onTap: (text) {
                   _textController.text = text;
                   _sendMessage(householdId);
@@ -184,8 +205,24 @@ class _AiChatScreenState extends ConsumerState<AiChatScreen> {
 
 class _EmptyState extends StatelessWidget {
   final void Function(String suggestion) onSuggestion;
+  final String? taskHint;
 
-  const _EmptyState({required this.onSuggestion});
+  const _EmptyState({required this.onSuggestion, this.taskHint});
+
+  IconData get _icon {
+    switch (taskHint) {
+      case 'chore_scheduling':
+        return Icons.checklist;
+      case 'meal_planning':
+        return Icons.restaurant_menu;
+      case 'grocery':
+        return Icons.shopping_cart;
+      case 'calendar':
+        return Icons.calendar_month;
+      default:
+        return Icons.smart_toy_outlined;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +236,7 @@ class _EmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.smart_toy_outlined,
+              _icon,
               size: 64,
               color: colorScheme.primary.withValues(alpha: 0.5),
             ),
@@ -217,7 +254,7 @@ class _EmptyState extends StatelessWidget {
                   ),
             ),
             const SizedBox(height: 24),
-            AiSuggestionChips(onTap: onSuggestion),
+            AiSuggestionChips(onTap: onSuggestion, taskHint: taskHint),
           ],
         ),
       ),

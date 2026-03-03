@@ -5,8 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.calendar_event import CalendarEvent
-from ..models.household import HouseholdMember
 from ..models.user import User
+from .permissions import require_adult_or_admin, require_membership
 from ..schemas.calendar import (
     CalendarEventCreateRequest,
     CalendarEventResponse,
@@ -17,7 +17,7 @@ from ..schemas.calendar import (
 async def create_event(
     db: AsyncSession, household_id: str, data: CalendarEventCreateRequest, user: User
 ) -> CalendarEventResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     event = CalendarEvent(
         household_id=household_id,
         title=data.title,
@@ -44,7 +44,7 @@ async def list_events(
     start_date: datetime | None = None,
     end_date: datetime | None = None,
 ) -> list[CalendarEventResponse]:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     query = select(CalendarEvent).where(CalendarEvent.household_id == household_id)
     if start_date:
         query = query.where(CalendarEvent.start_time >= start_date)
@@ -58,7 +58,7 @@ async def list_events(
 async def get_event(
     db: AsyncSession, household_id: str, event_id: str, user: User
 ) -> CalendarEventResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     result = await db.execute(
         select(CalendarEvent).where(
             CalendarEvent.id == event_id, CalendarEvent.household_id == household_id
@@ -73,7 +73,7 @@ async def get_event(
 async def update_event(
     db: AsyncSession, household_id: str, event_id: str, data: CalendarEventUpdateRequest, user: User
 ) -> CalendarEventResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     result = await db.execute(
         select(CalendarEvent).where(
             CalendarEvent.id == event_id, CalendarEvent.household_id == household_id
@@ -93,7 +93,7 @@ async def update_event(
 async def delete_event(
     db: AsyncSession, household_id: str, event_id: str, user: User
 ) -> None:
-    await _require_adult(db, household_id, user.id)
+    await require_adult_or_admin(db, household_id, user.id)
     result = await db.execute(
         select(CalendarEvent).where(
             CalendarEvent.id == event_id, CalendarEvent.household_id == household_id
@@ -103,25 +103,3 @@ async def delete_event(
     if not event:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
     await db.delete(event)
-
-
-# --- Helpers ---
-
-async def _require_membership(db: AsyncSession, household_id: str, user_id: str) -> HouseholdMember:
-    result = await db.execute(
-        select(HouseholdMember).where(
-            HouseholdMember.household_id == household_id,
-            HouseholdMember.user_id == user_id,
-        )
-    )
-    member = result.scalar_one_or_none()
-    if not member:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a member of this household")
-    return member
-
-
-async def _require_adult(db: AsyncSession, household_id: str, user_id: str) -> HouseholdMember:
-    member = await _require_membership(db, household_id, user_id)
-    if member.role != "family_adult":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only family adults can perform this action")
-    return member

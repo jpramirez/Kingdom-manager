@@ -78,4 +78,53 @@ class ActionResult {
 
   bool get isCompleted => status == 'completed';
   bool get isFailed => status == 'failed';
+
+  /// Human-readable label for the action type.
+  String get readableLabel {
+    switch (actionType) {
+      case 'create_chore':
+        return 'Created chore';
+      case 'assign_chore':
+        return 'Assigned chore';
+      case 'complete_chore':
+        return 'Completed chore';
+      case 'add_grocery_items':
+        return 'Added grocery items';
+      case 'check_grocery_item':
+        return 'Checked off item';
+      case 'create_meal_plan':
+        return 'Planned meal';
+      case 'batch_meal_plan':
+        return 'Planned meals';
+      case 'create_event':
+        return 'Created event';
+      case 'create_approval':
+        return 'Created approval';
+      case 'update_memory':
+        return 'Remembered';
+      default:
+        return actionType ?? 'Action';
+    }
+  }
+
+  /// Route path for navigating to the created entity, if applicable.
+  String? get navigationRoute {
+    if (!isCompleted) return null;
+    switch (entityType) {
+      case 'chore':
+        return entityId != null ? '/chores/$entityId' : '/chores';
+      case 'chore_assignment':
+        return '/chores';
+      case 'grocery_list':
+        return entityId != null ? '/grocery/$entityId' : '/grocery';
+      case 'meal_plan':
+        return '/meals';
+      case 'event':
+        return '/calendar';
+      case 'approval':
+        return '/approvals';
+      default:
+        return null;
+    }
+  }
 }

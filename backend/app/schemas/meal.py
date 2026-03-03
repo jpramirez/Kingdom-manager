@@ -46,6 +46,8 @@ class MealPlanEntry(BaseModel):
     recipe_id: str | None = None
     custom_meal_name: str | None = None
     notes: str | None = None
+    profile_id: str | None = None
+    servings: int | None = Field(None, ge=1)
 
 
 class MealPlanBatchRequest(BaseModel):
@@ -60,6 +62,9 @@ class MealPlanResponse(BaseModel):
     recipe_id: str | None = None
     custom_meal_name: str | None = None
     notes: str | None = None
+    profile_id: str | None = None
+    profile_name: str | None = None
+    servings: int | None = None
     created_by: str
     recipe_name: str | None = None
 

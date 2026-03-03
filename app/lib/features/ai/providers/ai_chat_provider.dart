@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/ai_conversation.dart';
 import '../models/ai_message.dart';
@@ -27,6 +28,7 @@ class AiChatState {
   final bool isLoading;
   final bool isSending;
   final String? error;
+  final String? taskHint;
 
   const AiChatState({
     this.conversation,
@@ -34,6 +36,7 @@ class AiChatState {
     this.isLoading = false,
     this.isSending = false,
     this.error,
+    this.taskHint,
   });
 
   AiChatState copyWith({
@@ -42,6 +45,7 @@ class AiChatState {
     bool? isLoading,
     bool? isSending,
     String? error,
+    String? taskHint,
   }) {
     return AiChatState(
       conversation: conversation ?? this.conversation,
@@ -49,6 +53,7 @@ class AiChatState {
       isLoading: isLoading ?? this.isLoading,
       isSending: isSending ?? this.isSending,
       error: error,
+      taskHint: taskHint ?? this.taskHint,
     );
   }
 }
@@ -63,31 +68,38 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
   Future<void> startConversation({
     String? conversationId,
     String conversationType = 'general',
+    String? taskHint,
   }) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, error: null, taskHint: taskHint);
     try {
       AiConversation conv;
       if (conversationId != null) {
         // Load existing conversation
+        debugPrint('[AI] Provider: loading existing conversation $conversationId');
         final conversations = await _repo.getConversations(_householdId);
         conv = conversations.firstWhere((c) => c.id == conversationId);
       } else {
         // Create new
+        debugPrint('[AI] Provider: creating new conversation type=$conversationType');
         conv = await _repo.createConversation(
           _householdId,
           conversationType: conversationType,
         );
       }
 
+      debugPrint('[AI] Provider: conversation ready id=${conv.id}');
       // Load messages
       final messages = await _repo.getMessages(_householdId, conv.id);
+      debugPrint('[AI] Provider: loaded ${messages.length} existing messages');
 
       state = state.copyWith(
         conversation: conv,
         messages: messages,
         isLoading: false,
       );
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[AI] Provider: startConversation ERROR: $e');
+      debugPrint('[AI] Provider: stack: $st');
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
@@ -97,6 +109,8 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
     if (state.conversation == null || state.isSending) return;
 
     final convId = state.conversation!.id;
+    // Use provided taskHint or fall back to the stored one
+    final hint = taskHint ?? state.taskHint;
 
     // Optimistically add user message
     final tempUserMsg = AiMessage(
@@ -114,21 +128,26 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
     );
 
     try {
+      debugPrint('[AI] Provider: sending message to conv=$convId hint=$hint');
       final response = await _repo.sendMessage(
         _householdId,
         convId,
         content,
-        taskHint: taskHint,
+        taskHint: hint,
       );
+      debugPrint('[AI] Provider: got response, re-fetching messages');
 
       // Re-fetch all messages from server to get actual IDs
       final messages = await _repo.getMessages(_householdId, convId);
+      debugPrint('[AI] Provider: fetched ${messages.length} messages');
 
       state = state.copyWith(
         messages: messages,
         isSending: false,
       );
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('[AI] Provider: sendMessage ERROR: $e');
+      debugPrint('[AI] Provider: stack: $st');
       // Remove the temp message on error
       final filtered =
           state.messages.where((m) => m.id != tempUserMsg.id).toList();

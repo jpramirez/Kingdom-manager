@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,6 +23,9 @@ class FamilyProfile(Base):
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     linked_user_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), nullable=True)
     linked_member_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), nullable=True)
+    invite_email: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    invite_phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_by: Mapped[str] = mapped_column(UUID(as_uuid=False), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

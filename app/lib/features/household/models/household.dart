@@ -44,6 +44,7 @@ class HouseholdMember {
   final String userId;
   final String role;
   final String? nickname;
+  final bool isAdmin;
   final String displayName;
   final String email;
   final String? avatarUrl;
@@ -55,11 +56,14 @@ class HouseholdMember {
     required this.userId,
     required this.role,
     this.nickname,
+    this.isAdmin = false,
     required this.displayName,
     required this.email,
     this.avatarUrl,
     required this.joinedAt,
   });
+
+  bool get canManage => role == 'family_adult' || isAdmin;
 
   factory HouseholdMember.fromJson(Map<String, dynamic> json) {
     return HouseholdMember(
@@ -68,10 +72,30 @@ class HouseholdMember {
       userId: json['user_id'] as String,
       role: json['role'] as String,
       nickname: json['nickname'] as String?,
+      isAdmin: json['is_admin'] as bool? ?? false,
       displayName: json['display_name'] as String,
       email: json['email'] as String,
       avatarUrl: json['avatar_url'] as String?,
       joinedAt: DateTime.parse(json['joined_at'] as String),
+    );
+  }
+
+  HouseholdMember copyWith({
+    String? role,
+    String? nickname,
+    bool? isAdmin,
+  }) {
+    return HouseholdMember(
+      id: id,
+      householdId: householdId,
+      userId: userId,
+      role: role ?? this.role,
+      nickname: nickname ?? this.nickname,
+      isAdmin: isAdmin ?? this.isAdmin,
+      displayName: displayName,
+      email: email,
+      avatarUrl: avatarUrl,
+      joinedAt: joinedAt,
     );
   }
 }

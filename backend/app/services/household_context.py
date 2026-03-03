@@ -1,18 +1,19 @@
 """Builds the household context payload injected into every AI system prompt.
 
 Queries existing tables (read-only) to gather current household state, member
-info, and stored memories.
+info, family profiles, and stored memories.
 """
 
 import logging
 from datetime import date, datetime, timedelta, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.ai_models import HouseholdMemory
 from ..models.calendar_event import CalendarEvent
 from ..models.chore import Chore, ChoreAssignment
+from ..models.family_profile import FamilyProfile
 from ..models.grocery import GroceryItem, GroceryList
 from ..models.household import HouseholdMember
 from ..models.recipe import MealPlan
@@ -37,21 +38,21 @@ class HouseholdContextManager:
         memories = await self._get_active_memories()
         members = await self._get_household_members()
         user_profile = await self._get_user_profile(user_id)
+        family_profiles = await self._get_family_profiles()
 
-        # Task-specific current state
+        # Always fetch all state sections — the expanded queries are compact
+        # enough and the AI needs full context to answer questions.
         current_state: dict = {}
-        if task_type in ("meal_planning", "grocery", "general"):
-            current_state["todays_meals"] = await self._get_todays_meals()
-            current_state["active_grocery_lists"] = await self._get_active_grocery_lists()
-        if task_type in ("chore_scheduling", "general"):
-            current_state["todays_chores"] = await self._get_todays_chores()
-        if task_type in ("calendar", "general"):
-            current_state["upcoming_events"] = await self._get_upcoming_events(days=7)
+        current_state["week_chores"] = await self._get_week_chores()
+        current_state["week_meals"] = await self._get_week_meals()
+        current_state["active_grocery_lists"] = await self._get_active_grocery_lists_detailed()
+        current_state["upcoming_events"] = await self._get_upcoming_events(days=7)
 
         return {
             "household_id": self.household_id,
             "requesting_user": user_profile,
             "members": members,
+            "family_profiles": family_profiles,
             "memories": self._format_memories(memories),
             "current_state": current_state,
             "user_language": user_profile.get("preferred_locale", "en"),
@@ -117,68 +118,119 @@ class HouseholdContextManager:
             "preferred_locale": user.preferred_locale,
         }
 
+    # ── Family profiles ─────────────────────────────────────────────
+
+    async def _get_family_profiles(self) -> list[dict]:
+        """Fetch all family profiles with their dietary/allergy info."""
+        result = await self.db.execute(
+            select(FamilyProfile)
+            .where(FamilyProfile.household_id == self.household_id)
+            .order_by(FamilyProfile.created_at)
+        )
+        profiles = []
+        for p in result.scalars().all():
+            profiles.append({
+                "name": p.name,
+                "role": p.role,
+                "age": p.age,
+                "preferred_lang": p.preferred_lang,
+                "dietary_prefs": p.dietary_prefs or [],
+                "allergies": p.allergies or [],
+                "meal_times": p.meal_times or {},
+                "linked_user_id": str(p.linked_user_id) if p.linked_user_id else None,
+            })
+        return profiles
+
     # ── State queries ───────────────────────────────────────────────
 
-    async def _get_todays_chores(self) -> list[dict]:
+    async def _get_week_chores(self) -> list[dict]:
+        """Fetch chore assignments for the next 7 days with assignee details."""
         today = date.today()
+        week_end = today + timedelta(days=7)
         result = await self.db.execute(
-            select(ChoreAssignment, Chore)
+            select(ChoreAssignment, Chore, User)
             .join(Chore, ChoreAssignment.chore_id == Chore.id)
+            .join(User, ChoreAssignment.assigned_to == User.id)
             .where(
                 Chore.household_id == self.household_id,
-                ChoreAssignment.due_date == today,
+                ChoreAssignment.due_date >= today,
+                ChoreAssignment.due_date <= week_end,
             )
-            .order_by(ChoreAssignment.due_time)
+            .order_by(ChoreAssignment.due_date, ChoreAssignment.due_time)
+            .limit(30)
         )
         chores = []
-        for assignment, chore in result.all():
+        for assignment, chore, user in result.all():
             chores.append({
+                "assignment_id": str(assignment.id),
+                "chore_id": str(chore.id),
                 "title": chore.title,
+                "category": chore.category,
                 "status": assignment.status,
-                "assigned_to": assignment.assigned_to,
+                "assigned_to_name": user.display_name,
+                "assigned_to_id": str(assignment.assigned_to),
                 "priority": chore.priority,
+                "due_date": str(assignment.due_date),
             })
         return chores
 
-    async def _get_todays_meals(self) -> list[dict]:
+    async def _get_week_meals(self) -> list[dict]:
+        """Fetch meal plans for the next 7 days."""
         today = date.today()
+        week_end = today + timedelta(days=6)
         result = await self.db.execute(
             select(MealPlan)
             .where(
                 MealPlan.household_id == self.household_id,
-                MealPlan.date == today,
+                MealPlan.date >= today,
+                MealPlan.date <= week_end,
             )
-            .order_by(MealPlan.meal_type)
+            .order_by(MealPlan.date, MealPlan.meal_type)
+            .limit(28)
         )
         meals = []
         for mp in result.scalars().all():
             meals.append({
+                "date": str(mp.date),
                 "meal_type": mp.meal_type,
                 "custom_meal_name": mp.custom_meal_name,
-                "recipe_id": mp.recipe_id,
+                "recipe_id": str(mp.recipe_id) if mp.recipe_id else None,
             })
         return meals
 
-    async def _get_active_grocery_lists(self) -> list[dict]:
-        # Get active lists with item counts
+    async def _get_active_grocery_lists_detailed(self) -> list[dict]:
+        """Fetch active grocery lists with their items (not just counts)."""
         result = await self.db.execute(
-            select(
-                GroceryList,
-                func.count(GroceryItem.id).label("item_count"),
-            )
-            .outerjoin(GroceryItem, GroceryList.id == GroceryItem.list_id)
+            select(GroceryList)
             .where(
                 GroceryList.household_id == self.household_id,
-                GroceryList.status == "active",
+                GroceryList.status.in_(["active", "shopping"]),
             )
-            .group_by(GroceryList.id)
+            .order_by(GroceryList.created_at.desc())
+            .limit(3)
         )
         lists = []
-        for gl, item_count in result.all():
+        for gl in result.scalars().all():
+            items_result = await self.db.execute(
+                select(GroceryItem)
+                .where(GroceryItem.list_id == gl.id)
+                .order_by(GroceryItem.sort_order)
+                .limit(30)
+            )
+            items = []
+            for item in items_result.scalars().all():
+                items.append({
+                    "id": str(item.id),
+                    "name": item.name,
+                    "quantity": item.quantity,
+                    "unit": item.unit,
+                    "is_checked": item.is_checked,
+                })
             lists.append({
-                "id": gl.id,
+                "id": str(gl.id),
                 "name": gl.name,
-                "item_count": item_count,
+                "status": gl.status,
+                "items": items,
             })
         return lists
 

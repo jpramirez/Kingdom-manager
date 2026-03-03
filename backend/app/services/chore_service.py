@@ -5,8 +5,8 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.chore import Chore, ChoreAssignment
-from ..models.household import HouseholdMember
 from ..models.user import User
+from .permissions import require_adult_or_admin, require_membership
 from ..schemas.chore import (
     AssignmentCreateRequest,
     AssignmentResponse,
@@ -20,7 +20,7 @@ from ..schemas.chore import (
 async def create_chore(
     db: AsyncSession, household_id: str, data: ChoreCreateRequest, user: User
 ) -> ChoreResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     chore = Chore(
         household_id=household_id,
         title=data.title,
@@ -45,7 +45,7 @@ async def create_chore(
 async def list_chores(
     db: AsyncSession, household_id: str, user: User
 ) -> list[ChoreResponse]:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     result = await db.execute(
         select(Chore)
         .where(Chore.household_id == household_id)
@@ -57,7 +57,7 @@ async def list_chores(
 async def get_chore(
     db: AsyncSession, household_id: str, chore_id: str, user: User
 ) -> ChoreResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     result = await db.execute(
         select(Chore).where(Chore.id == chore_id, Chore.household_id == household_id)
     )
@@ -70,7 +70,7 @@ async def get_chore(
 async def update_chore(
     db: AsyncSession, household_id: str, chore_id: str, data: ChoreUpdateRequest, user: User
 ) -> ChoreResponse:
-    await _require_adult(db, household_id, user.id)
+    await require_adult_or_admin(db, household_id, user.id)
     result = await db.execute(
         select(Chore).where(Chore.id == chore_id, Chore.household_id == household_id)
     )
@@ -88,7 +88,7 @@ async def update_chore(
 async def delete_chore(
     db: AsyncSession, household_id: str, chore_id: str, user: User
 ) -> None:
-    await _require_adult(db, household_id, user.id)
+    await require_adult_or_admin(db, household_id, user.id)
     result = await db.execute(
         select(Chore).where(Chore.id == chore_id, Chore.household_id == household_id)
     )
@@ -101,7 +101,7 @@ async def delete_chore(
 async def assign_chore(
     db: AsyncSession, household_id: str, chore_id: str, data: AssignmentCreateRequest, user: User
 ) -> AssignmentResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     # Verify chore exists
     chore_result = await db.execute(
         select(Chore).where(Chore.id == chore_id, Chore.household_id == household_id)
@@ -110,7 +110,7 @@ async def assign_chore(
     if not chore:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chore not found")
     # Verify assignee is member
-    await _require_membership(db, household_id, data.assigned_to)
+    await require_membership(db, household_id, data.assigned_to)
 
     assignment = ChoreAssignment(
         chore_id=chore_id,
@@ -145,7 +145,7 @@ async def assign_chore(
 async def update_assignment(
     db: AsyncSession, household_id: str, assignment_id: str, data: AssignmentUpdateRequest, user: User
 ) -> AssignmentResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     result = await db.execute(select(ChoreAssignment).where(ChoreAssignment.id == assignment_id))
     assignment = result.scalar_one_or_none()
     if not assignment:
@@ -191,7 +191,7 @@ async def update_assignment(
 async def get_my_assignments(
     db: AsyncSession, household_id: str, user: User
 ) -> list[AssignmentResponse]:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     result = await db.execute(
         select(ChoreAssignment, Chore)
         .join(Chore, ChoreAssignment.chore_id == Chore.id)
@@ -213,7 +213,7 @@ async def get_my_assignments(
 async def get_today_assignments(
     db: AsyncSession, household_id: str, user: User
 ) -> list[AssignmentResponse]:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     today = date.today()
     result = await db.execute(
         select(ChoreAssignment, Chore, User)
@@ -232,25 +232,3 @@ async def get_today_assignments(
         )
         for a, c, u in result.all()
     ]
-
-
-# --- Helpers ---
-
-async def _require_membership(db: AsyncSession, household_id: str, user_id: str) -> HouseholdMember:
-    result = await db.execute(
-        select(HouseholdMember).where(
-            HouseholdMember.household_id == household_id,
-            HouseholdMember.user_id == user_id,
-        )
-    )
-    member = result.scalar_one_or_none()
-    if not member:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not a member of this household")
-    return member
-
-
-async def _require_adult(db: AsyncSession, household_id: str, user_id: str) -> HouseholdMember:
-    member = await _require_membership(db, household_id, user_id)
-    if member.role != "family_adult":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only family adults can perform this action")
-    return member

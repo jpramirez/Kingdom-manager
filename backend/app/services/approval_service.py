@@ -5,8 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.approval import ApprovalRequest
-from ..models.household import HouseholdMember
 from ..models.user import User
+from .permissions import require_adult_or_admin, require_membership
 from ..schemas.approval import (
     ApprovalCreateRequest,
     ApprovalResponse,
@@ -16,7 +16,7 @@ from ..schemas.approval import (
 async def create_approval(
     db: AsyncSession, household_id: str, data: ApprovalCreateRequest, user: User
 ) -> ApprovalResponse:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     approval = ApprovalRequest(
         household_id=household_id,
         requested_by=user.id,
@@ -34,7 +34,7 @@ async def create_approval(
 async def list_approvals(
     db: AsyncSession, household_id: str, user: User, pending_only: bool = True
 ) -> list[ApprovalResponse]:
-    await _require_membership(db, household_id, user.id)
+    await require_membership(db, household_id, user.id)
     query = select(ApprovalRequest).where(
         ApprovalRequest.household_id == household_id
     )
@@ -49,7 +49,7 @@ async def list_approvals(
 async def approve(
     db: AsyncSession, household_id: str, approval_id: str, user: User
 ) -> ApprovalResponse:
-    await _require_adult(db, household_id, user.id)
+    await require_adult_or_admin(db, household_id, user.id)
     approval = await _get_approval_or_404(db, household_id, approval_id)
     if approval.status != "pending":
         raise HTTPException(
@@ -66,7 +66,7 @@ async def approve(
 async def reject(
     db: AsyncSession, household_id: str, approval_id: str, reason: str | None, user: User
 ) -> ApprovalResponse:
-    await _require_adult(db, household_id, user.id)
+    await require_adult_or_admin(db, household_id, user.id)
     approval = await _get_approval_or_404(db, household_id, approval_id)
     if approval.status != "pending":
         raise HTTPException(
@@ -131,33 +131,3 @@ async def _get_approval_or_404(
             status_code=status.HTTP_404_NOT_FOUND, detail="Approval request not found"
         )
     return approval
-
-
-async def _require_membership(
-    db: AsyncSession, household_id: str, user_id: str
-) -> HouseholdMember:
-    result = await db.execute(
-        select(HouseholdMember).where(
-            HouseholdMember.household_id == household_id,
-            HouseholdMember.user_id == user_id,
-        )
-    )
-    member = result.scalar_one_or_none()
-    if not member:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not a member of this household",
-        )
-    return member
-
-
-async def _require_adult(
-    db: AsyncSession, household_id: str, user_id: str
-) -> HouseholdMember:
-    member = await _require_membership(db, household_id, user_id)
-    if member.role != "family_adult":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only family adults can approve/reject requests",
-        )
-    return member

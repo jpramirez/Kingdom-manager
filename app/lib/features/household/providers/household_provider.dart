@@ -96,3 +96,22 @@ class ActiveHouseholdNotifier extends StateNotifier<ActiveHouseholdState> {
 final membersProvider = FutureProvider.family<List<HouseholdMember>, String>((ref, householdId) async {
   return ref.read(householdRepositoryProvider).getMembers(householdId);
 });
+
+/// Provides the current user's HouseholdMember for the active household.
+/// Used for permission checks (canManage, isAdmin, role).
+final currentMemberProvider = FutureProvider<HouseholdMember?>((ref) async {
+  final authState = ref.watch(authStateProvider);
+  final user = authState.valueOrNull;
+  if (user == null) return null;
+
+  final householdState = ref.watch(activeHouseholdProvider);
+  final household = householdState.household;
+  if (household == null) return null;
+
+  final members = await ref.watch(membersProvider(household.id).future);
+  try {
+    return members.firstWhere((m) => m.userId == user.id);
+  } catch (_) {
+    return null;
+  }
+});
