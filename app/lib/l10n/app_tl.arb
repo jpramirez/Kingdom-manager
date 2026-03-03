@@ -269,5 +269,13 @@
   "paused": "Naka-pause",
   "archived": "Naka-archive",
   "deleteChoreConfirm": "Sigurado ka bang gusto mong burahin ang gawaing ito?",
-  "reasonOptional": "Dahilan (opsyonal)"
+  "reasonOptional": "Dahilan (opsyonal)",
+
+  "comments": "Mga Komento",
+  "addComment": "Magdagdag ng komento...",
+  "noComments": "Wala pang komento",
+  "commentAdded": "Naidagdag ang komento",
+  "commentDeleted": "Nabura ang komento",
+  "deleteComment": "Burahin ang komento",
+  "deleteCommentConfirm": "Burahin ang komentong ito?"
 }

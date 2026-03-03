@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../comments/widgets/comments_section.dart';
 import '../../household/providers/household_provider.dart';
 import '../models/grocery.dart';
 import '../providers/grocery_provider.dart';
@@ -225,7 +226,19 @@ class _GroceryDetailScreenState extends ConsumerState<GroceryDetailScreen> {
 
     if (household == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(l10n.groceryList)),
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/grocery');
+              }
+            },
+          ),
+          title: Text(l10n.groceryList),
+        ),
         body: const Center(child: Text('No household')),
       );
     }
@@ -238,6 +251,16 @@ class _GroceryDetailScreenState extends ConsumerState<GroceryDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/grocery');
+            }
+          },
+        ),
         title: Text(l10n.groceryList),
         actions: [
           IconButton(
@@ -300,20 +323,27 @@ class _GroceryDetailScreenState extends ConsumerState<GroceryDetailScreen> {
         ),
         data: (items) {
           if (items.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.receipt_long_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.outline),
-                  const SizedBox(height: 16),
-                  Text(l10n.noItems,
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                const SizedBox(height: 48),
+                Icon(Icons.receipt_long_outlined,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.outline),
+                const SizedBox(height: 16),
+                Center(
+                  child: Text(l10n.noItems,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: Theme.of(context).colorScheme.outline,
                           )),
-                ],
-              ),
+                ),
+                const SizedBox(height: 32),
+                CommentsSection(
+                  householdId: household.id,
+                  entityType: 'grocery_list',
+                  entityId: widget.listId,
+                ),
+              ],
             );
           }
 
@@ -332,8 +362,20 @@ class _GroceryDetailScreenState extends ConsumerState<GroceryDetailScreen> {
             },
             child: ListView.builder(
               padding: const EdgeInsets.only(bottom: 80),
-              itemCount: categories.length,
+              itemCount: categories.length + 1,
               itemBuilder: (context, index) {
+                // Last item: comments section
+                if (index == categories.length) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: CommentsSection(
+                      householdId: household.id,
+                      entityType: 'grocery_list',
+                      entityId: widget.listId,
+                    ),
+                  );
+                }
+
                 final category = categories[index];
                 final categoryItems = grouped[category]!;
 

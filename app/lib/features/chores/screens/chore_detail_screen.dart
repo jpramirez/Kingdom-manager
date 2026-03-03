@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../comments/widgets/comments_section.dart';
 import '../../household/models/household.dart';
 import '../../household/providers/household_provider.dart';
 import '../models/chore.dart';
@@ -521,6 +522,14 @@ class _ChoreDetailScreenState extends ConsumerState<ChoreDetailScreen> {
                 choreId: chore.id,
                 onComplete: (assignment) =>
                     _showCompleteDialog(household.id, assignment),
+              ),
+              const SizedBox(height: 24),
+
+              // Comments section
+              CommentsSection(
+                householdId: household.id,
+                entityType: 'chore',
+                entityId: chore.id,
               ),
             ],
           ),

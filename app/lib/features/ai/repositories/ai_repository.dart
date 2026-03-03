@@ -1,7 +1,16 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_endpoints.dart';
 import '../models/ai_conversation.dart';
 import '../models/ai_message.dart';
+
+/// Longer timeout for AI endpoints — LLM inference can take 30-120s.
+final _aiTimeout = Options(
+  sendTimeout: const Duration(seconds: 150),
+  receiveTimeout: const Duration(seconds: 150),
+);
 
 class AiRepository {
   final ApiClient _api = ApiClient();
@@ -20,10 +29,12 @@ class AiRepository {
     String householdId, {
     String conversationType = 'general',
   }) async {
+    debugPrint('[AI] Creating conversation for household=$householdId type=$conversationType');
     final response = await _api.post(
       ApiEndpoints.aiConversations(householdId),
       data: {'conversation_type': conversationType},
     );
+    debugPrint('[AI] Conversation created: ${response.statusCode}');
     return AiConversation.fromJson(response.data);
   }
 
@@ -57,18 +68,25 @@ class AiRepository {
     };
     if (taskHint != null) data['task_hint'] = taskHint;
 
-    final response = await _api.post(
-      ApiEndpoints.aiMessages(householdId, conversationId),
-      data: data,
-    );
-    return response.data as Map<String, dynamic>;
+    final url = ApiEndpoints.aiMessages(householdId, conversationId);
+    debugPrint('[AI] Sending message to $url hint=$taskHint');
+    try {
+      final response = await _api.post(url, data: data, options: _aiTimeout);
+      debugPrint('[AI] Response received: ${response.statusCode}');
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('[AI] Send error: $e');
+      rethrow;
+    }
   }
 
   // ── Onboarding ──────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> startOnboarding(String householdId) async {
     final response = await _api.post(
-        ApiEndpoints.aiOnboardingStart(householdId));
+      ApiEndpoints.aiOnboardingStart(householdId),
+      options: _aiTimeout,
+    );
     return response.data as Map<String, dynamic>;
   }
 
@@ -78,5 +96,23 @@ class AiRepository {
     final response = await _api.get(ApiEndpoints.aiMemory(householdId));
     final list = response.data as List;
     return list.map((e) => e as Map<String, dynamic>).toList();
+  }
+
+  Future<void> updateMemory(String householdId, String memoryId, Map<String, dynamic> data) async {
+    await _api.put(ApiEndpoints.aiMemoryItem(householdId, memoryId), data: data);
+  }
+
+  Future<void> deleteMemory(String householdId, String memoryId) async {
+    await _api.delete(ApiEndpoints.aiMemoryItem(householdId, memoryId));
+  }
+
+  // ── Onboarding Advance ────────────────────────────────────────
+
+  Future<Map<String, dynamic>> advanceOnboarding(String householdId, String conversationId) async {
+    final response = await _api.post(
+      ApiEndpoints.aiOnboardingAdvance(householdId, conversationId),
+      options: _aiTimeout,
+    );
+    return response.data as Map<String, dynamic>;
   }
 }

@@ -76,6 +76,7 @@ class ApiEndpoints {
   static String aiConversation(String hid, String cid) => '/households/$hid/ai/conversations/$cid';
   static String aiMessages(String hid, String cid) => '/households/$hid/ai/conversations/$cid/messages';
   static String aiOnboardingStart(String hid) => '/households/$hid/ai/onboarding/start';
+  static String aiOnboardingAdvance(String hid, String cid) => '/households/$hid/ai/onboarding/$cid/advance';
   static String aiMemory(String hid) => '/households/$hid/ai/memory';
   static String aiMemoryItem(String hid, String mid) => '/households/$hid/ai/memory/$mid';
 }

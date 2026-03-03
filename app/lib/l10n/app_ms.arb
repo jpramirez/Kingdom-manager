@@ -269,5 +269,13 @@
   "paused": "Dijeda",
   "archived": "Diarkibkan",
   "deleteChoreConfirm": "Adakah anda pasti mahu memadamkan tugasan ini?",
-  "reasonOptional": "Sebab (pilihan)"
+  "reasonOptional": "Sebab (pilihan)",
+
+  "comments": "Komen",
+  "addComment": "Tambah komen...",
+  "noComments": "Tiada komen lagi",
+  "commentAdded": "Komen ditambah",
+  "commentDeleted": "Komen dipadam",
+  "deleteComment": "Padam komen",
+  "deleteCommentConfirm": "Padam komen ini?"
 }

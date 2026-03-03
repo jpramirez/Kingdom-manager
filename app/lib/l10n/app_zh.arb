@@ -269,5 +269,13 @@
   "paused": "已暂停",
   "archived": "已归档",
   "deleteChoreConfirm": "确定要删除这个家务吗？",
-  "reasonOptional": "原因（可选）"
+  "reasonOptional": "原因（可选）",
+
+  "comments": "评论",
+  "addComment": "添加评论...",
+  "noComments": "暂无评论",
+  "commentAdded": "评论已添加",
+  "commentDeleted": "评论已删除",
+  "deleteComment": "删除评论",
+  "deleteCommentConfirm": "删除此评论？"
 }

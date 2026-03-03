@@ -269,5 +269,13 @@
   "paused": "ခေတ္တရပ်",
   "archived": "မှတ်တမ်းတင်ပြီး",
   "deleteChoreConfirm": "ဤအိမ်မှုကို ဖျက်ချင်ပါသလား?",
-  "reasonOptional": "အကြောင်းပြချက် (ရွေးချယ်နိုင်)"
+  "reasonOptional": "အကြောင်းပြချက် (ရွေးချယ်နိုင်)",
+
+  "comments": "မှတ်ချက်များ",
+  "addComment": "မှတ်ချက်ထည့်ရန်...",
+  "noComments": "မှတ်ချက် မရှိသေးပါ",
+  "commentAdded": "မှတ်ချက် ထည့်ပြီး",
+  "commentDeleted": "မှတ်ချက် ဖျက်ပြီး",
+  "deleteComment": "မှတ်ချက် ဖျက်ရန်",
+  "deleteCommentConfirm": "ဤမှတ်ချက်ကို ဖျက်မလား?"
 }

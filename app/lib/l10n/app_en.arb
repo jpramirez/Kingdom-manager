@@ -283,5 +283,13 @@
   "paused": "Paused",
   "archived": "Archived",
   "deleteChoreConfirm": "Are you sure you want to delete this chore?",
-  "reasonOptional": "Reason (optional)"
+  "reasonOptional": "Reason (optional)",
+
+  "comments": "Comments",
+  "addComment": "Add a comment...",
+  "noComments": "No comments yet",
+  "commentAdded": "Comment added",
+  "commentDeleted": "Comment deleted",
+  "deleteComment": "Delete comment",
+  "deleteCommentConfirm": "Delete this comment?"
 }

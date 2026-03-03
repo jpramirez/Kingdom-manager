@@ -269,5 +269,13 @@
   "paused": "Dijeda",
   "archived": "Diarsipkan",
   "deleteChoreConfirm": "Apakah Anda yakin ingin menghapus tugas ini?",
-  "reasonOptional": "Alasan (opsional)"
+  "reasonOptional": "Alasan (opsional)",
+
+  "comments": "Komentar",
+  "addComment": "Tambah komentar...",
+  "noComments": "Belum ada komentar",
+  "commentAdded": "Komentar ditambahkan",
+  "commentDeleted": "Komentar dihapus",
+  "deleteComment": "Hapus komentar",
+  "deleteCommentConfirm": "Hapus komentar ini?"
 }

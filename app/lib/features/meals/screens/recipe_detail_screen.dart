@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../comments/widgets/comments_section.dart';
 import '../../household/providers/household_provider.dart';
 import '../models/recipe.dart';
 import '../providers/meal_provider.dart';
@@ -154,9 +155,20 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
   Widget build(BuildContext context) {
     final household = ref.watch(activeHouseholdProvider).household;
 
+    Widget backButton() => IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        if (context.canPop()) {
+          context.pop();
+        } else {
+          context.go('/meals');
+        }
+      },
+    );
+
     if (household == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Recipe')),
+        appBar: AppBar(leading: backButton(), title: const Text('Recipe')),
         body: const Center(child: Text('No household selected')),
       );
     }
@@ -165,11 +177,11 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
 
     return recipesAsync.when(
       loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Recipe')),
+        appBar: AppBar(leading: backButton(), title: const Text('Recipe')),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => Scaffold(
-        appBar: AppBar(title: const Text('Recipe')),
+        appBar: AppBar(leading: backButton(), title: const Text('Recipe')),
         body: Center(child: Text('Error: $e')),
       ),
       data: (recipes) {
@@ -177,7 +189,7 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
             recipes.where((r) => r.id == widget.recipeId).firstOrNull;
         if (recipe == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Recipe')),
+            appBar: AppBar(leading: backButton(), title: const Text('Recipe')),
             body: const Center(child: Text('Recipe not found')),
           );
         }
@@ -194,6 +206,16 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
       BuildContext context, Recipe recipe, String householdId) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/meals');
+            }
+          },
+        ),
         title: const Text('Recipe'),
         actions: [
           IconButton(
@@ -333,6 +355,14 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
               ),
             ),
           ],
+
+          // Comments section
+          const SizedBox(height: 24),
+          CommentsSection(
+            householdId: householdId,
+            entityType: 'recipe',
+            entityId: recipe.id,
+          ),
         ],
       ),
     );
