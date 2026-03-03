@@ -11,6 +11,10 @@ build/
 venv/
 env/
 
+# Firebase
+**/google-services.json
+**/GoogleService-Info.plist
+
 # Flutter
 app/.dart_tool/
 app/.flutter-plugins
