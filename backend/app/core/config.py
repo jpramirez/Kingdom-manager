@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
     # CORS
-    CORS_ORIGINS: str = '["*"]'
+    CORS_ORIGINS: str = '["https://house.epy.digital", "http://localhost:8888"]'
 
     # AI / Chimera LLM Gateway
     CHIMERA_URL: str = "https://console.epy.digital/api/chat"
