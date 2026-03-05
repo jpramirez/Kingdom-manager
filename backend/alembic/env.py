@@ -20,6 +20,7 @@ from app.models.notification import Notification, DeviceToken  # noqa: F401
 from app.models.magic_link import MagicLink  # noqa: F401
 from app.models.comment import Comment, Attachment  # noqa: F401
 from app.models.ai_models import AiConversation, AiMessage, HouseholdMemory, AiActionLog  # noqa: F401
+from app.models.inventory import InventoryItem  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:
