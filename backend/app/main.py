@@ -23,6 +23,7 @@ from .api.v1.meals import router as meals_router
 from .api.v1.approvals import router as approvals_router
 from .api.v1.notifications import router as notifications_router
 from .api.v1.notifications import ws_router as ws_notifications_router
+from .api.v1.inventory import router as inventory_router
 from .api.v1.ai import router as ai_router
 
 # Force UTF-8 for log output on Windows (Qwen responses may contain emoji)
@@ -72,6 +73,7 @@ app.include_router(comments_router, prefix=settings.API_V1_PREFIX)
 app.include_router(meals_router, prefix=settings.API_V1_PREFIX)
 app.include_router(approvals_router, prefix=settings.API_V1_PREFIX)
 app.include_router(notifications_router, prefix=settings.API_V1_PREFIX)
+app.include_router(inventory_router, prefix=settings.API_V1_PREFIX)
 app.include_router(ai_router, prefix=settings.API_V1_PREFIX)
 # WebSocket router at root (no /api/v1 prefix)
 app.include_router(ws_notifications_router)

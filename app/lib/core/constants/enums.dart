@@ -107,6 +107,22 @@ enum GroceryCategory {
   }
 }
 
+enum InventoryLocation {
+  fridge('fridge'),
+  freezer('freezer'),
+  pantry('pantry');
+
+  final String value;
+  const InventoryLocation(this.value);
+
+  static InventoryLocation fromValue(String value) {
+    return InventoryLocation.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => InventoryLocation.pantry,
+    );
+  }
+}
+
 enum MealType {
   breakfast('breakfast'),
   lunch('lunch'),

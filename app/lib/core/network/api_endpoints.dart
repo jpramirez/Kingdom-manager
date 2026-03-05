@@ -49,6 +49,12 @@ class ApiEndpoints {
   static String mealRequests(String hid) => '/households/$hid/meals/requests/';
   static String mealRequest(String hid, String id) => '/households/$hid/meals/requests/$id';
 
+  // Inventory
+  static String inventory(String hid) => '/households/$hid/inventory/';
+  static String inventoryItem(String hid, String id) => '/households/$hid/inventory/$id';
+  static String inventoryBarcode(String hid, String barcode) => '/households/$hid/inventory/barcode/$barcode';
+  static String inventoryFromGrocery(String hid) => '/households/$hid/inventory/from-grocery';
+
   // Grocery
   static String groceryLists(String hid) => '/households/$hid/grocery/lists/';
   static String groceryList(String hid, String id) => '/households/$hid/grocery/lists/$id';

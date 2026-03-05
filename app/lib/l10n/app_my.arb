@@ -300,5 +300,17 @@
       "added": {"type": "int"},
       "skipped": {"type": "int"}
     }
-  }
+  },
+  "inventory": "ပစ္စည်းစာရင်း",
+  "all": "အားလုံး",
+  "fridge": "ရေခဲသေတ္တာ",
+  "freezer": "အအေးခန်း",
+  "expiryDate": "သက်တမ်းကုန်ရက်",
+  "expired": "သက်တမ်းကုန်ပြီ",
+  "expiringSoon": "သက်တမ်းကုန်တော့မည်",
+  "addToInventory": "ပစ္စည်းစာရင်းသို့ ထည့်ရန်",
+  "noInventoryItems": "ပစ္စည်းစာရင်းတွင် မရှိပါ",
+  "viewInventory": "ပစ္စည်းစာရင်း ကြည့်ရန်",
+  "barcode": "ဘားကုဒ်",
+  "name": "အမည်"
 }

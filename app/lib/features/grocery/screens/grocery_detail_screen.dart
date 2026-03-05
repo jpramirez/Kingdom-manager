@@ -5,6 +5,7 @@ import '../../../core/constants/enums.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../comments/widgets/comments_section.dart';
 import '../../household/providers/household_provider.dart';
+import '../../inventory/providers/inventory_provider.dart';
 import '../models/grocery.dart';
 import '../providers/grocery_provider.dart';
 
@@ -81,7 +82,7 @@ class _GroceryDetailScreenState extends ConsumerState<GroceryDetailScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: selectedUnit,
+                        initialValue: selectedUnit,
                         decoration: InputDecoration(
                           labelText: l10n.unit,
                           border: const OutlineInputBorder(),
@@ -98,7 +99,7 @@ class _GroceryDetailScreenState extends ConsumerState<GroceryDetailScreen> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: selectedCategory,
+                  initialValue: selectedCategory,
                   decoration: InputDecoration(
                     labelText: l10n.category,
                     border: const OutlineInputBorder(),
@@ -179,13 +180,75 @@ class _GroceryDetailScreenState extends ConsumerState<GroceryDetailScreen> {
   Future<void> _toggleItem(
       String householdId, GroceryItem item) async {
     try {
+      final nowChecked = !item.isChecked;
       await ref.read(groceryRepositoryProvider).toggleItem(
             householdId,
             widget.listId,
             item.id,
-            !item.isChecked,
+            nowChecked,
           );
       _refreshItems(householdId);
+
+      // Prompt to add to inventory when checking off
+      if (nowChecked && mounted) {
+        _promptAddToInventory(householdId, item);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _promptAddToInventory(
+      String householdId, GroceryItem item) async {
+    final l10n = AppLocalizations.of(context)!;
+    final location = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.addToInventory),
+        content: Text(item.name),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(ctx).pop('fridge'),
+            icon: const Icon(Icons.kitchen, size: 18),
+            label: Text(l10n.fridge),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(ctx).pop('freezer'),
+            icon: const Icon(Icons.ac_unit, size: 18),
+            label: Text(l10n.freezer),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(ctx).pop('pantry'),
+            icon: const Icon(Icons.shelves, size: 18),
+            label: Text(l10n.pantry),
+          ),
+        ],
+      ),
+    );
+
+    if (location == null || !mounted) return;
+
+    try {
+      await ref.read(inventoryRepositoryProvider).groceryToInventory(
+            householdId,
+            groceryItemId: item.id,
+            listId: widget.listId,
+            location: location,
+          );
+      ref.invalidate(inventoryItemsProvider(householdId));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${item.name} → ${l10n.inventory}')),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -197,7 +260,6 @@ class _GroceryDetailScreenState extends ConsumerState<GroceryDetailScreen> {
 
   Future<void> _removeItem(
       String householdId, GroceryItem item) async {
-    final l10n = AppLocalizations.of(context)!;
     try {
       await ref.read(groceryRepositoryProvider).removeItem(
             householdId,
@@ -263,6 +325,11 @@ class _GroceryDetailScreenState extends ConsumerState<GroceryDetailScreen> {
         ),
         title: Text(l10n.groceryList),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.inventory_2_outlined),
+            tooltip: l10n.viewInventory,
+            onPressed: () => context.push('/inventory'),
+          ),
           IconButton(
             icon: const Icon(Icons.delete_outline),
             onPressed: () async {

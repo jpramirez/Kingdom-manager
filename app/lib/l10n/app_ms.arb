@@ -300,5 +300,17 @@
       "added": {"type": "int"},
       "skipped": {"type": "int"}
     }
-  }
+  },
+  "inventory": "Inventori",
+  "all": "Semua",
+  "fridge": "Peti sejuk",
+  "freezer": "Peti beku",
+  "expiryDate": "Tarikh luput",
+  "expired": "Tamat tempoh",
+  "expiringSoon": "Hampir luput",
+  "addToInventory": "Tambah ke inventori",
+  "noInventoryItems": "Tiada item inventori",
+  "viewInventory": "Lihat inventori",
+  "barcode": "Kod bar",
+  "name": "Nama"
 }

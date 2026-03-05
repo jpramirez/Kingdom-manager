@@ -20,6 +20,8 @@ import '../../features/ai/screens/ai_chat_screen.dart';
 import '../../features/ai/screens/ai_onboarding_screen.dart';
 import '../../features/family_profiles/screens/family_members_screen.dart';
 import '../../features/family_profiles/screens/family_setup_wizard_screen.dart';
+import '../../features/inventory/screens/inventory_screen.dart';
+import '../../features/inventory/screens/add_inventory_item_screen.dart';
 import '../../features/household/providers/household_provider.dart';
 import '../../features/household/screens/create_household_screen.dart';
 import '../../features/household/screens/household_setup_screen.dart';
@@ -129,6 +131,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => RecipeDetailScreen(
           recipeId: state.pathParameters['id']!,
         ),
+      ),
+
+      // Inventory routes (full screen)
+      GoRoute(
+        path: '/inventory',
+        builder: (_, __) => const InventoryScreen(),
+      ),
+      GoRoute(
+        path: '/inventory/add',
+        builder: (_, __) => const AddInventoryItemScreen(),
       ),
 
       // Approvals route (full screen)

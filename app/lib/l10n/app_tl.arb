@@ -300,5 +300,17 @@
       "added": {"type": "int"},
       "skipped": {"type": "int"}
     }
-  }
+  },
+  "inventory": "Imbentaryo",
+  "all": "Lahat",
+  "fridge": "Ref",
+  "freezer": "Freezer",
+  "expiryDate": "Petsa ng pagka-expire",
+  "expired": "Nag-expire na",
+  "expiringSoon": "Malapit nang mag-expire",
+  "addToInventory": "Idagdag sa imbentaryo",
+  "noInventoryItems": "Walang item sa imbentaryo",
+  "viewInventory": "Tingnan ang imbentaryo",
+  "barcode": "Barcode",
+  "name": "Pangalan"
 }

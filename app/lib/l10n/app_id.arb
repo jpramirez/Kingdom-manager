@@ -300,5 +300,17 @@
       "added": {"type": "int"},
       "skipped": {"type": "int"}
     }
-  }
+  },
+  "inventory": "Inventaris",
+  "all": "Semua",
+  "fridge": "Kulkas",
+  "freezer": "Freezer",
+  "expiryDate": "Tanggal kedaluwarsa",
+  "expired": "Kedaluwarsa",
+  "expiringSoon": "Segera kedaluwarsa",
+  "addToInventory": "Tambah ke inventaris",
+  "noInventoryItems": "Tidak ada item inventaris",
+  "viewInventory": "Lihat inventaris",
+  "barcode": "Barcode",
+  "name": "Nama"
 }

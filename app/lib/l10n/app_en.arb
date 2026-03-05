@@ -314,5 +314,17 @@
       "added": {"type": "int"},
       "skipped": {"type": "int"}
     }
-  }
+  },
+  "inventory": "Inventory",
+  "all": "All",
+  "fridge": "Fridge",
+  "freezer": "Freezer",
+  "expiryDate": "Expiry date",
+  "expired": "Expired",
+  "expiringSoon": "Expiring soon",
+  "addToInventory": "Add to inventory",
+  "noInventoryItems": "No inventory items",
+  "viewInventory": "View inventory",
+  "barcode": "Barcode",
+  "name": "Name"
 }

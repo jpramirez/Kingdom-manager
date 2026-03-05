@@ -300,5 +300,17 @@
       "added": {"type": "int"},
       "skipped": {"type": "int"}
     }
-  }
+  },
+  "inventory": "库存",
+  "all": "全部",
+  "fridge": "冰箱",
+  "freezer": "冷冻",
+  "expiryDate": "保质期",
+  "expired": "已过期",
+  "expiringSoon": "即将过期",
+  "addToInventory": "添加到库存",
+  "noInventoryItems": "暂无库存物品",
+  "viewInventory": "查看库存",
+  "barcode": "条形码",
+  "name": "名称"
 }
