@@ -291,5 +291,19 @@
   "commentAdded": "Comment added",
   "commentDeleted": "Comment deleted",
   "deleteComment": "Delete comment",
-  "deleteCommentConfirm": "Delete this comment?"
+  "deleteCommentConfirm": "Delete this comment?",
+
+  "plan": "Plan",
+
+  "ingredients": "Ingredients",
+  "addIngredient": "Add Ingredient",
+  "ingredientName": "Ingredient name",
+  "optional": "Optional",
+  "ingredientCount": "{count} ingredients",
+  "@ingredientCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "noIngredients": "No ingredients added"
 }

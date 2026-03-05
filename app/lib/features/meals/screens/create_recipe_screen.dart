@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../household/providers/household_provider.dart';
 import '../providers/meal_provider.dart';
 
@@ -22,7 +23,16 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
   final _servingsController = TextEditingController();
   final _tagsController = TextEditingController();
 
+  final List<_IngredientEntry> _ingredients = [];
   bool _loading = false;
+
+  static const _units = [
+    '', 'kg', 'g', 'pcs', 'bottles', 'packs', 'L', 'mL',
+    'cans', 'tbsp', 'tsp', 'cups',
+  ];
+  static const _categories = [
+    'produce', 'dairy', 'meat', 'pantry', 'frozen', 'household', 'other',
+  ];
 
   @override
   void dispose() {
@@ -33,7 +43,23 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
     _cookTimeController.dispose();
     _servingsController.dispose();
     _tagsController.dispose();
+    for (final ing in _ingredients) {
+      ing.dispose();
+    }
     super.dispose();
+  }
+
+  void _addIngredient() {
+    setState(() {
+      _ingredients.add(_IngredientEntry());
+    });
+  }
+
+  void _removeIngredient(int index) {
+    setState(() {
+      _ingredients[index].dispose();
+      _ingredients.removeAt(index);
+    });
   }
 
   Future<void> _save() async {
@@ -73,6 +99,24 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
             .toList();
       }
 
+      final validIngredients = _ingredients
+          .where((ing) => ing.nameController.text.trim().isNotEmpty)
+          .toList();
+      if (validIngredients.isNotEmpty) {
+        data['ingredients'] = validIngredients.asMap().entries.map((e) {
+          final ing = e.value;
+          return {
+            'name': ing.nameController.text.trim(),
+            if (ing.quantityController.text.trim().isNotEmpty)
+              'quantity': double.tryParse(ing.quantityController.text.trim()),
+            if (ing.unit.isNotEmpty) 'unit': ing.unit,
+            'category': ing.category,
+            'optional': ing.optional,
+            'sort_order': e.key,
+          };
+        }).toList();
+      }
+
       await ref
           .read(mealRepositoryProvider)
           .createRecipe(household.id, data);
@@ -81,7 +125,7 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Recipe created')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.recipeCreated)),
         );
         context.pop();
       }
@@ -98,6 +142,8 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -106,24 +152,23 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
             if (context.canPop()) {
               context.pop();
             } else {
-              context.go('/meals');
+              context.go('/plan');
             }
           },
         ),
-        title: const Text('Create Recipe'),
+        title: Text(l10n.createRecipe),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Name
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Recipe name',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.restaurant_menu),
+              decoration: InputDecoration(
+                labelText: l10n.recipeName,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.restaurant_menu),
               ),
               textInputAction: TextInputAction.next,
               validator: (value) {
@@ -135,13 +180,12 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Description
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.description),
+              decoration: InputDecoration(
+                labelText: l10n.description,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.description),
                 alignLabelWithHint: true,
               ),
               maxLines: 3,
@@ -149,31 +193,28 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Instructions
             TextFormField(
               controller: _instructionsController,
-              decoration: const InputDecoration(
-                labelText: 'Instructions',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.list_alt),
+              decoration: InputDecoration(
+                labelText: l10n.instructions,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.list_alt),
                 alignLabelWithHint: true,
-                hintText: 'Step-by-step cooking instructions...',
               ),
               maxLines: 6,
               textInputAction: TextInputAction.newline,
             ),
             const SizedBox(height: 16),
 
-            // Prep and Cook time
             Row(
               children: [
                 Expanded(
                   child: TextFormField(
                     controller: _prepTimeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Prep time',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.timer_outlined),
+                    decoration: InputDecoration(
+                      labelText: l10n.prepTime,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.timer_outlined),
                       suffixText: 'min',
                     ),
                     keyboardType: TextInputType.number,
@@ -183,10 +224,10 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
                 Expanded(
                   child: TextFormField(
                     controller: _cookTimeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Cook time',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.local_fire_department),
+                    decoration: InputDecoration(
+                      labelText: l10n.cookTime,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.local_fire_department),
                       suffixText: 'min',
                     ),
                     keyboardType: TextInputType.number,
@@ -196,31 +237,164 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Servings
             TextFormField(
               controller: _servingsController,
-              decoration: const InputDecoration(
-                labelText: 'Servings',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.people_outline),
+              decoration: InputDecoration(
+                labelText: l10n.servings,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.people_outline),
               ),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
 
-            // Tags
             TextFormField(
               controller: _tagsController,
-              decoration: const InputDecoration(
-                labelText: 'Tags (comma-separated)',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.tag),
+              decoration: InputDecoration(
+                labelText: l10n.tags,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.tag),
                 hintText: 'e.g. vegetarian, quick, healthy',
               ),
             ),
+            const SizedBox(height: 24),
+
+            // Ingredients section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  l10n.ingredients,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                TextButton.icon(
+                  onPressed: _addIngredient,
+                  icon: const Icon(Icons.add, size: 18),
+                  label: Text(l10n.addIngredient),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            if (_ingredients.isEmpty)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: Text(
+                      l10n.noIngredients,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else
+              ..._ingredients.asMap().entries.map((entry) {
+                final index = entry.key;
+                final ing = entry.value;
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: TextFormField(
+                                controller: ing.nameController,
+                                decoration: InputDecoration(
+                                  labelText: l10n.ingredientName,
+                                  border: const OutlineInputBorder(),
+                                  isDense: true,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.close, size: 20),
+                              onPressed: () => _removeIngredient(index),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: ing.quantityController,
+                                decoration: InputDecoration(
+                                  labelText: l10n.quantity,
+                                  border: const OutlineInputBorder(),
+                                  isDense: true,
+                                ),
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: DropdownButtonFormField<String>(
+                                initialValue: ing.unit,
+                                decoration: InputDecoration(
+                                  labelText: l10n.unit,
+                                  border: const OutlineInputBorder(),
+                                  isDense: true,
+                                ),
+                                items: _units
+                                    .map((u) => DropdownMenuItem(
+                                          value: u,
+                                          child: Text(u.isEmpty ? '-' : u),
+                                        ))
+                                    .toList(),
+                                onChanged: (v) =>
+                                    setState(() => ing.unit = v ?? ''),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: DropdownButtonFormField<String>(
+                                initialValue: ing.category,
+                                decoration: InputDecoration(
+                                  labelText: l10n.category,
+                                  border: const OutlineInputBorder(),
+                                  isDense: true,
+                                ),
+                                items: _categories
+                                    .map((c) => DropdownMenuItem(
+                                          value: c,
+                                          child: Text(c),
+                                        ))
+                                    .toList(),
+                                onChanged: (v) =>
+                                    setState(() => ing.category = v ?? 'other'),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: ing.optional,
+                              onChanged: (v) =>
+                                  setState(() => ing.optional = v ?? false),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            Text(l10n.optional),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+
             const SizedBox(height: 32),
 
-            // Save button
             FilledButton(
               onPressed: _loading ? null : _save,
               child: _loading
@@ -229,11 +403,24 @@ class _CreateRecipeScreenState extends ConsumerState<CreateRecipeScreen> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Save'),
+                  : Text(l10n.save),
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+class _IngredientEntry {
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController quantityController = TextEditingController();
+  String unit = '';
+  String category = 'other';
+  bool optional = false;
+
+  void dispose() {
+    nameController.dispose();
+    quantityController.dispose();
   }
 }

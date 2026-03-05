@@ -135,7 +135,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             if (context.canPop()) {
               context.pop();
             } else {
-              context.go('/calendar');
+              context.go('/plan');
             }
           },
         ),

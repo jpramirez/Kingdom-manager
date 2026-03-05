@@ -277,5 +277,19 @@
   "commentAdded": "Naidagdag ang komento",
   "commentDeleted": "Nabura ang komento",
   "deleteComment": "Burahin ang komento",
-  "deleteCommentConfirm": "Burahin ang komentong ito?"
+  "deleteCommentConfirm": "Burahin ang komentong ito?",
+
+  "plan": "Plano",
+
+  "ingredients": "Mga Sangkap",
+  "addIngredient": "Magdagdag ng Sangkap",
+  "ingredientName": "Pangalan ng sangkap",
+  "optional": "Opsyonal",
+  "ingredientCount": "{count} na sangkap",
+  "@ingredientCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "noIngredients": "Walang naidagdag na sangkap"
 }

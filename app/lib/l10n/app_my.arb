@@ -277,5 +277,19 @@
   "commentAdded": "မှတ်ချက် ထည့်ပြီး",
   "commentDeleted": "မှတ်ချက် ဖျက်ပြီး",
   "deleteComment": "မှတ်ချက် ဖျက်ရန်",
-  "deleteCommentConfirm": "ဤမှတ်ချက်ကို ဖျက်မလား?"
+  "deleteCommentConfirm": "ဤမှတ်ချက်ကို ဖျက်မလား?",
+
+  "plan": "အစီအစဉ်",
+
+  "ingredients": "ပါဝင်ပစ္စည်းများ",
+  "addIngredient": "ပါဝင်ပစ္စည်း ထည့်ရန်",
+  "ingredientName": "ပါဝင်ပစ္စည်း အမည်",
+  "optional": "ရွေးချယ်နိုင်",
+  "ingredientCount": "ပါဝင်ပစ္စည်း {count} မျိုး",
+  "@ingredientCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "noIngredients": "ပါဝင်ပစ္စည်း မထည့်ရသေးပါ"
 }

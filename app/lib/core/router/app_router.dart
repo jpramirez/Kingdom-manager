@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
-import '../../features/calendar/screens/calendar_screen.dart';
 import '../../features/chores/screens/chore_detail_screen.dart';
 import '../../features/chores/screens/chores_screen.dart';
 import '../../features/chores/screens/create_chore_screen.dart';
@@ -12,7 +11,7 @@ import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/grocery/screens/grocery_detail_screen.dart';
 import '../../features/grocery/screens/grocery_screen.dart';
 import '../../features/calendar/screens/create_event_screen.dart';
-import '../../features/meals/screens/meals_screen.dart';
+import '../../features/meals/screens/plan_screen.dart';
 import '../../features/meals/screens/create_recipe_screen.dart';
 import '../../features/meals/screens/recipe_detail_screen.dart';
 import '../../features/approvals/screens/approvals_screen.dart';
@@ -174,8 +173,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(path: '/', builder: (_, __) => const DashboardScreen()),
           GoRoute(path: '/chores', builder: (_, __) => const ChoresScreen()),
-          GoRoute(path: '/meals', builder: (_, __) => const MealsScreen()),
-          GoRoute(path: '/calendar', builder: (_, __) => const CalendarScreen()),
+          GoRoute(path: '/plan', builder: (_, __) => const PlanScreen()),
           GoRoute(path: '/grocery', builder: (_, __) => const GroceryScreen()),
           GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
         ],
@@ -209,14 +207,9 @@ class MainShell extends StatelessWidget {
             label: l10n.chores,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.restaurant_menu_outlined),
-            selectedIcon: const Icon(Icons.restaurant_menu),
-            label: l10n.meals,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.calendar_month_outlined),
-            selectedIcon: const Icon(Icons.calendar_month),
-            label: l10n.calendar,
+            icon: const Icon(Icons.event_note_outlined),
+            selectedIcon: const Icon(Icons.event_note),
+            label: l10n.plan,
           ),
           NavigationDestination(
             icon: const Icon(Icons.shopping_cart_outlined),
@@ -237,10 +230,9 @@ class MainShell extends StatelessWidget {
     try {
       final location = GoRouterState.of(context).uri.path;
       if (location.startsWith('/chores')) return 1;
-      if (location.startsWith('/meals')) return 2;
-      if (location.startsWith('/calendar')) return 3;
-      if (location.startsWith('/grocery')) return 4;
-      if (location.startsWith('/settings')) return 5;
+      if (location.startsWith('/plan')) return 2;
+      if (location.startsWith('/grocery')) return 3;
+      if (location.startsWith('/settings')) return 4;
       return 0;
     } catch (_) {
       return 0;
@@ -254,12 +246,10 @@ class MainShell extends StatelessWidget {
       case 1:
         context.go('/chores');
       case 2:
-        context.go('/meals');
+        context.go('/plan');
       case 3:
-        context.go('/calendar');
-      case 4:
         context.go('/grocery');
-      case 5:
+      case 4:
         context.go('/settings');
     }
   }

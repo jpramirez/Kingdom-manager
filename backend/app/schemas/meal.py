@@ -3,6 +3,38 @@ from datetime import date, datetime
 from pydantic import BaseModel, Field
 
 
+# --- Recipe Ingredients ---
+
+
+class RecipeIngredientCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    quantity: float | None = None
+    unit: str | None = Field(None, max_length=30)
+    category: str = Field(default="other")
+    optional: bool = False
+    sort_order: int = 0
+
+
+class RecipeIngredientResponse(BaseModel):
+    id: str
+    recipe_id: str
+    name: str
+    quantity: float | None = None
+    unit: str | None = None
+    category: str
+    optional: bool
+    sort_order: int
+
+    model_config = {"from_attributes": True}
+
+
+class RecipeIngredientBatchRequest(BaseModel):
+    ingredients: list[RecipeIngredientCreate]
+
+
+# --- Recipes ---
+
+
 class RecipeCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     description: str | None = None
@@ -11,6 +43,7 @@ class RecipeCreateRequest(BaseModel):
     cook_time_minutes: int | None = Field(None, ge=1)
     servings: int | None = Field(None, ge=1)
     tags: list[str] | None = None
+    ingredients: list[RecipeIngredientCreate] | None = None
 
 
 class RecipeUpdateRequest(BaseModel):
@@ -21,6 +54,7 @@ class RecipeUpdateRequest(BaseModel):
     cook_time_minutes: int | None = Field(None, ge=1)
     servings: int | None = Field(None, ge=1)
     tags: list[str] | None = None
+    ingredients: list[RecipeIngredientCreate] | None = None
 
 
 class RecipeResponse(BaseModel):
@@ -34,6 +68,7 @@ class RecipeResponse(BaseModel):
     cook_time_minutes: int | None = None
     servings: int | None = None
     tags: list[str] | None = None
+    ingredients: list[RecipeIngredientResponse] = []
     created_by: str
     created_at: datetime
 

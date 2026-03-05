@@ -2,10 +2,11 @@ import json
 from datetime import date as date_type
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, and_
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.recipe import MealPlan, MealRequest, Recipe
+from ..models.recipe_ingredient import RecipeIngredient
 from ..models.family_profile import FamilyProfile
 from ..models.user import User
 from .permissions import require_membership
@@ -15,6 +16,8 @@ from ..schemas.meal import (
     MealRequestCreate,
     MealRequestResponse,
     RecipeCreateRequest,
+    RecipeIngredientBatchRequest,
+    RecipeIngredientResponse,
     RecipeResponse,
     RecipeUpdateRequest,
 )
@@ -40,7 +43,11 @@ async def create_recipe(
     )
     db.add(recipe)
     await db.flush()
-    return _recipe_to_response(recipe)
+
+    if data.ingredients:
+        await _replace_ingredients(db, recipe.id, data.ingredients)
+
+    return await _recipe_to_response(db, recipe)
 
 
 async def list_recipes(
@@ -52,7 +59,7 @@ async def list_recipes(
         .where(Recipe.household_id == household_id)
         .order_by(Recipe.created_at.desc())
     )
-    return [_recipe_to_response(r) for r in result.scalars().all()]
+    return [await _recipe_to_response(db, r) for r in result.scalars().all()]
 
 
 async def get_recipe(
@@ -60,7 +67,7 @@ async def get_recipe(
 ) -> RecipeResponse:
     await require_membership(db, household_id, user.id)
     recipe = await _get_recipe_or_404(db, household_id, recipe_id)
-    return _recipe_to_response(recipe)
+    return await _recipe_to_response(db, recipe)
 
 
 async def update_recipe(
@@ -69,12 +76,20 @@ async def update_recipe(
     await require_membership(db, household_id, user.id)
     recipe = await _get_recipe_or_404(db, household_id, recipe_id)
     update_data = data.model_dump(exclude_unset=True)
+
+    # Handle ingredients separately
+    ingredients_data = update_data.pop("ingredients", None)
+
     if "tags" in update_data and update_data["tags"] is not None:
         update_data["tags"] = json.dumps(update_data["tags"])
     for key, value in update_data.items():
         setattr(recipe, key, value)
     await db.flush()
-    return _recipe_to_response(recipe)
+
+    if ingredients_data is not None:
+        await _replace_ingredients(db, recipe.id, data.ingredients)
+
+    return await _recipe_to_response(db, recipe)
 
 
 async def delete_recipe(
@@ -83,6 +98,27 @@ async def delete_recipe(
     await require_membership(db, household_id, user.id)
     recipe = await _get_recipe_or_404(db, household_id, recipe_id)
     await db.delete(recipe)
+
+
+# --- Recipe Ingredients ---
+
+
+async def get_recipe_ingredients(
+    db: AsyncSession, household_id: str, recipe_id: str, user: User
+) -> list[RecipeIngredientResponse]:
+    await require_membership(db, household_id, user.id)
+    await _get_recipe_or_404(db, household_id, recipe_id)
+    return await _fetch_ingredients(db, recipe_id)
+
+
+async def set_recipe_ingredients(
+    db: AsyncSession, household_id: str, recipe_id: str,
+    data: RecipeIngredientBatchRequest, user: User
+) -> list[RecipeIngredientResponse]:
+    await require_membership(db, household_id, user.id)
+    await _get_recipe_or_404(db, household_id, recipe_id)
+    await _replace_ingredients(db, recipe_id, data.ingredients)
+    return await _fetch_ingredients(db, recipe_id)
 
 
 # --- Meal Plans ---
@@ -306,13 +342,14 @@ async def update_meal_request(
 # --- Helpers ---
 
 
-def _recipe_to_response(recipe: Recipe) -> RecipeResponse:
+async def _recipe_to_response(db: AsyncSession, recipe: Recipe) -> RecipeResponse:
     tags = None
     if recipe.tags:
         try:
             tags = json.loads(recipe.tags)
         except (json.JSONDecodeError, TypeError):
             tags = None
+    ingredients = await _fetch_ingredients(db, recipe.id)
     return RecipeResponse(
         id=recipe.id,
         household_id=recipe.household_id,
@@ -324,9 +361,48 @@ def _recipe_to_response(recipe: Recipe) -> RecipeResponse:
         cook_time_minutes=recipe.cook_time_minutes,
         servings=recipe.servings,
         tags=tags,
+        ingredients=ingredients,
         created_by=recipe.created_by,
         created_at=recipe.created_at,
     )
+
+
+async def _fetch_ingredients(db: AsyncSession, recipe_id: str) -> list[RecipeIngredientResponse]:
+    result = await db.execute(
+        select(RecipeIngredient)
+        .where(RecipeIngredient.recipe_id == recipe_id)
+        .order_by(RecipeIngredient.sort_order.asc())
+    )
+    return [
+        RecipeIngredientResponse(
+            id=ing.id,
+            recipe_id=ing.recipe_id,
+            name=ing.name,
+            quantity=float(ing.quantity) if ing.quantity is not None else None,
+            unit=ing.unit,
+            category=ing.category,
+            optional=ing.optional,
+            sort_order=ing.sort_order,
+        )
+        for ing in result.scalars().all()
+    ]
+
+
+async def _replace_ingredients(db: AsyncSession, recipe_id: str, ingredients) -> None:
+    await db.execute(
+        delete(RecipeIngredient).where(RecipeIngredient.recipe_id == recipe_id)
+    )
+    for i, ing in enumerate(ingredients):
+        db.add(RecipeIngredient(
+            recipe_id=recipe_id,
+            name=ing.name,
+            quantity=ing.quantity,
+            unit=ing.unit,
+            category=ing.category,
+            optional=ing.optional,
+            sort_order=ing.sort_order if ing.sort_order else i,
+        ))
+    await db.flush()
 
 
 async def _get_recipe_or_404(db: AsyncSession, household_id: str, recipe_id: str) -> Recipe:

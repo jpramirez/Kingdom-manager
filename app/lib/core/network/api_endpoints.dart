@@ -43,6 +43,7 @@ class ApiEndpoints {
   // Meals
   static String recipes(String hid) => '/households/$hid/meals/recipes/';
   static String recipe(String hid, String id) => '/households/$hid/meals/recipes/$id';
+  static String recipeIngredients(String hid, String rid) => '/households/$hid/meals/recipes/$rid/ingredients';
   static String mealPlan(String hid) => '/households/$hid/meals/plan';
   static String mealRequests(String hid) => '/households/$hid/meals/requests/';
   static String mealRequest(String hid, String id) => '/households/$hid/meals/requests/$id';

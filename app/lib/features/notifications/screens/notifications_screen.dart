@@ -158,10 +158,10 @@ class _NotificationTile extends ConsumerWidget {
         break;
       case 'meal_plan':
       case 'recipe':
-        context.push('/meals');
+        context.push('/plan');
         break;
       case 'calendar_event':
-        context.push('/calendar');
+        context.push('/plan');
         break;
       case 'grocery_list':
         context.push('/grocery/${n.referenceId}');

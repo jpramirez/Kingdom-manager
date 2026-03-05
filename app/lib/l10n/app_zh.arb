@@ -277,5 +277,19 @@
   "commentAdded": "评论已添加",
   "commentDeleted": "评论已删除",
   "deleteComment": "删除评论",
-  "deleteCommentConfirm": "删除此评论？"
+  "deleteCommentConfirm": "删除此评论？",
+
+  "plan": "计划",
+
+  "ingredients": "食材",
+  "addIngredient": "添加食材",
+  "ingredientName": "食材名称",
+  "optional": "可选",
+  "ingredientCount": "{count} 种食材",
+  "@ingredientCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "noIngredients": "尚未添加食材"
 }

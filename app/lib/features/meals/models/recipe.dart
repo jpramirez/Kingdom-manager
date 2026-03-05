@@ -1,3 +1,69 @@
+class RecipeIngredient {
+  final String id;
+  final String recipeId;
+  final String name;
+  final double? quantity;
+  final String? unit;
+  final String category;
+  final bool optional;
+  final int sortOrder;
+
+  RecipeIngredient({
+    required this.id,
+    required this.recipeId,
+    required this.name,
+    this.quantity,
+    this.unit,
+    this.category = 'other',
+    this.optional = false,
+    this.sortOrder = 0,
+  });
+
+  factory RecipeIngredient.fromJson(Map<String, dynamic> json) {
+    return RecipeIngredient(
+      id: json['id'] as String,
+      recipeId: json['recipe_id'] as String,
+      name: json['name'] as String,
+      quantity: (json['quantity'] as num?)?.toDouble(),
+      unit: json['unit'] as String?,
+      category: json['category'] as String? ?? 'other',
+      optional: json['optional'] as bool? ?? false,
+      sortOrder: json['sort_order'] as int? ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      if (quantity != null) 'quantity': quantity,
+      if (unit != null) 'unit': unit,
+      'category': category,
+      'optional': optional,
+      'sort_order': sortOrder,
+    };
+  }
+
+  RecipeIngredient copyWith({
+    String? name,
+    double? quantity,
+    String? unit,
+    String? category,
+    bool? optional,
+    int? sortOrder,
+  }) {
+    return RecipeIngredient(
+      id: id,
+      recipeId: recipeId,
+      name: name ?? this.name,
+      quantity: quantity ?? this.quantity,
+      unit: unit ?? this.unit,
+      category: category ?? this.category,
+      optional: optional ?? this.optional,
+      sortOrder: sortOrder ?? this.sortOrder,
+    );
+  }
+}
+
 class Recipe {
   final String id;
   final String householdId;
@@ -9,6 +75,7 @@ class Recipe {
   final int? cookTimeMinutes;
   final int? servings;
   final List<String>? tags;
+  final List<RecipeIngredient> ingredients;
   final String createdBy;
   final DateTime createdAt;
 
@@ -23,6 +90,7 @@ class Recipe {
     this.cookTimeMinutes,
     this.servings,
     this.tags,
+    this.ingredients = const [],
     required this.createdBy,
     required this.createdAt,
   });
@@ -46,6 +114,10 @@ class Recipe {
       tags: (json['tags'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList(),
+      ingredients: (json['ingredients'] as List<dynamic>?)
+              ?.map((e) => RecipeIngredient.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       createdBy: json['created_by'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
@@ -61,6 +133,8 @@ class Recipe {
       if (cookTimeMinutes != null) 'cook_time_minutes': cookTimeMinutes,
       if (servings != null) 'servings': servings,
       if (tags != null) 'tags': tags,
+      if (ingredients.isNotEmpty)
+        'ingredients': ingredients.map((i) => i.toJson()).toList(),
     };
   }
 
@@ -73,6 +147,7 @@ class Recipe {
     int? cookTimeMinutes,
     int? servings,
     List<String>? tags,
+    List<RecipeIngredient>? ingredients,
   }) {
     return Recipe(
       id: id,
@@ -85,6 +160,7 @@ class Recipe {
       cookTimeMinutes: cookTimeMinutes ?? this.cookTimeMinutes,
       servings: servings ?? this.servings,
       tags: tags ?? this.tags,
+      ingredients: ingredients ?? this.ingredients,
       createdBy: createdBy,
       createdAt: createdAt,
     );

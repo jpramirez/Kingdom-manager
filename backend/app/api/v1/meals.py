@@ -11,6 +11,8 @@ from ...schemas.meal import (
     MealRequestCreate,
     MealRequestResponse,
     RecipeCreateRequest,
+    RecipeIngredientBatchRequest,
+    RecipeIngredientResponse,
     RecipeResponse,
     RecipeUpdateRequest,
 )
@@ -72,6 +74,36 @@ async def delete_recipe(
 ):
     await meal_service.delete_recipe(db, household_id, recipe_id, current_user)
     return MessageResponse(message="Recipe deleted")
+
+
+# --- Recipe Ingredients ---
+
+
+@router.get(
+    "/{household_id}/meals/recipes/{recipe_id}/ingredients",
+    response_model=list[RecipeIngredientResponse],
+)
+async def get_recipe_ingredients(
+    household_id: str,
+    recipe_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return await meal_service.get_recipe_ingredients(db, household_id, recipe_id, current_user)
+
+
+@router.put(
+    "/{household_id}/meals/recipes/{recipe_id}/ingredients",
+    response_model=list[RecipeIngredientResponse],
+)
+async def set_recipe_ingredients(
+    household_id: str,
+    recipe_id: str,
+    data: RecipeIngredientBatchRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return await meal_service.set_recipe_ingredients(db, household_id, recipe_id, data, current_user)
 
 
 # --- Meal Plans ---

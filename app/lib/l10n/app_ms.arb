@@ -277,5 +277,19 @@
   "commentAdded": "Komen ditambah",
   "commentDeleted": "Komen dipadam",
   "deleteComment": "Padam komen",
-  "deleteCommentConfirm": "Padam komen ini?"
+  "deleteCommentConfirm": "Padam komen ini?",
+
+  "plan": "Rancangan",
+
+  "ingredients": "Bahan-bahan",
+  "addIngredient": "Tambah Bahan",
+  "ingredientName": "Nama bahan",
+  "optional": "Pilihan",
+  "ingredientCount": "{count} bahan",
+  "@ingredientCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "noIngredients": "Tiada bahan ditambah"
 }

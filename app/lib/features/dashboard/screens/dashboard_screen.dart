@@ -374,7 +374,7 @@ class _TodayMealsCard extends ConsumerWidget {
                     style: Theme.of(context).textTheme.titleMedium),
                 const Spacer(),
                 TextButton(
-                  onPressed: () => context.push('/meals'),
+                  onPressed: () => context.push('/plan'),
                   child: Text(l10n.meals),
                 ),
               ],
@@ -416,7 +416,7 @@ class _TodayMealsCard extends ConsumerWidget {
                     return InkWell(
                       onTap: () => plan.recipeId != null
                           ? context.push('/meals/recipes/${plan.recipeId}')
-                          : context.push('/meals'),
+                          : context.push('/plan'),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(
