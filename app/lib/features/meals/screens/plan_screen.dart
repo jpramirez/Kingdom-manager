@@ -377,19 +377,44 @@ class _CalendarTab extends ConsumerWidget {
                 title: Text(event.location!),
               ),
             ],
+            if (event.sourceType == 'meal') ...[
+              const Divider(),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.restaurant_menu,
+                    color: Theme.of(context).colorScheme.primary),
+                title: Text(l10n.mealPlan),
+                subtitle: Text(l10n.tapToAdd),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  // Switch to the Meal Plan tab
+                  final planState = context.findAncestorStateOfType<_PlanScreenState>();
+                  planState?._tabController.animateTo(1);
+                },
+              ),
+            ],
             const Divider(),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton.icon(
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                    _deleteEvent(context, ref, householdId, event);
-                  },
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  label: Text(l10n.delete,
-                      style: const TextStyle(color: Colors.red)),
-                ),
+                if (event.sourceType != 'meal')
+                  TextButton.icon(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                      _deleteEvent(context, ref, householdId, event);
+                    },
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    label: Text(l10n.delete,
+                        style: const TextStyle(color: Colors.red)),
+                  ),
+                if (event.sourceType == 'meal')
+                  Text(
+                    '${l10n.meals} - auto-generated',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.outline,
+                          fontStyle: FontStyle.italic,
+                        ),
+                  ),
               ],
             ),
           ],
@@ -692,6 +717,8 @@ class _MealPlanTabState extends ConsumerState<_MealPlanTab> {
                       .read(mealRepositoryProvider)
                       .updateMealPlan(widget.householdId, [entry]);
                   ref.invalidate(mealPlanProvider(_params));
+                  // Refresh calendar since meal plans create calendar events
+                  ref.invalidate(calendarEventsProvider);
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(

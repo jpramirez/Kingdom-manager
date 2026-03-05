@@ -1,15 +1,24 @@
 import json
-from datetime import date as date_type
+from datetime import date as date_type, datetime, time, timezone
 
 from fastapi import HTTPException, status
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..models.calendar_event import CalendarEvent
 from ..models.recipe import MealPlan, MealRequest, Recipe
 from ..models.recipe_ingredient import RecipeIngredient
 from ..models.family_profile import FamilyProfile
 from ..models.user import User
 from .permissions import require_membership
+
+# Default meal times for calendar events
+_MEAL_TIMES = {
+    "breakfast": time(8, 0),
+    "lunch": time(12, 0),
+    "dinner": time(18, 30),
+    "snack": time(15, 0),
+}
 from ..schemas.meal import (
     MealPlanBatchRequest,
     MealPlanResponse,
@@ -192,6 +201,13 @@ async def set_meal_plan(
         existing = await db.execute(select(MealPlan).where(*filters))
         old = existing.scalar_one_or_none()
         if old:
+            # Delete associated calendar event
+            await db.execute(
+                delete(CalendarEvent).where(
+                    CalendarEvent.source_id == old.id,
+                    CalendarEvent.source_type == "meal",
+                )
+            )
             await db.delete(old)
             await db.flush()
 
@@ -222,6 +238,31 @@ async def set_meal_plan(
                 select(FamilyProfile.name).where(FamilyProfile.id == mp.profile_id)
             )
             profile_name = profile_result.scalar_one_or_none()
+
+        # Auto-create calendar event for the meal
+        meal_name = recipe_name or mp.custom_meal_name or mp.meal_type.capitalize()
+        meal_time = _MEAL_TIMES.get(mp.meal_type, time(12, 0))
+        start_dt = datetime.combine(mp.date, meal_time, tzinfo=timezone.utc)
+        end_dt = datetime.combine(mp.date, meal_time.replace(hour=meal_time.hour + 1), tzinfo=timezone.utc)
+
+        title = f"{mp.meal_type.capitalize()}: {meal_name}"
+        if profile_name:
+            title = f"{title} ({profile_name})"
+
+        cal_event = CalendarEvent(
+            household_id=household_id,
+            title=title,
+            description=mp.notes,
+            event_type="meal",
+            start_time=start_dt,
+            end_time=end_dt,
+            all_day=False,
+            source_id=mp.id,
+            source_type="meal",
+            created_by=user.id,
+        )
+        db.add(cal_event)
+        await db.flush()
 
         results.append(
             MealPlanResponse(
