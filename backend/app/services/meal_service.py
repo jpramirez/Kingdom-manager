@@ -2,7 +2,7 @@ import json
 from datetime import date as date_type, datetime, time, timezone
 
 from fastapi import HTTPException, status
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..models.calendar_event import CalendarEvent
@@ -19,7 +19,10 @@ _MEAL_TIMES = {
     "dinner": time(18, 30),
     "snack": time(15, 0),
 }
+from ..models.grocery import GroceryItem, GroceryList
 from ..schemas.meal import (
+    IngredientsToGroceryRequest,
+    IngredientsToGroceryResponse,
     MealPlanBatchRequest,
     MealPlanResponse,
     MealRequestCreate,
@@ -378,6 +381,74 @@ async def update_meal_request(
         created_at=req.created_at,
         requester_name=requester_name,
     )
+
+
+# --- Ingredients to Grocery ---
+
+
+async def add_ingredients_to_grocery(
+    db: AsyncSession, household_id: str, data: IngredientsToGroceryRequest, user: User
+) -> IngredientsToGroceryResponse:
+    await require_membership(db, household_id, user.id)
+
+    # Verify recipe exists
+    recipe = await _get_recipe_or_404(db, household_id, data.recipe_id)
+
+    # Verify grocery list exists and belongs to household
+    gl_result = await db.execute(
+        select(GroceryList).where(
+            GroceryList.id == data.grocery_list_id,
+            GroceryList.household_id == household_id,
+        )
+    )
+    if not gl_result.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Grocery list not found"
+        )
+
+    # Fetch recipe ingredients
+    ingredients = await _fetch_ingredients(db, recipe.id)
+
+    # Fetch existing grocery items in the list to deduplicate
+    existing_result = await db.execute(
+        select(GroceryItem.name).where(GroceryItem.list_id == data.grocery_list_id)
+    )
+    existing_names = {name.lower() for name in existing_result.scalars().all()}
+
+    # Get max sort order
+    max_sort_result = await db.execute(
+        select(func.max(GroceryItem.sort_order)).where(
+            GroceryItem.list_id == data.grocery_list_id
+        )
+    )
+    next_sort = (max_sort_result.scalar() or 0) + 1
+
+    added = 0
+    skipped = 0
+    for ing in ingredients:
+        if ing.optional:
+            skipped += 1
+            continue
+        if ing.name.lower() in existing_names:
+            skipped += 1
+            continue
+
+        db.add(GroceryItem(
+            list_id=data.grocery_list_id,
+            name=ing.name,
+            quantity=ing.quantity,
+            unit=ing.unit,
+            category=ing.category,
+            added_by=user.id,
+            sort_order=next_sort,
+            notes=f"From recipe: {recipe.name}",
+        ))
+        next_sort += 1
+        added += 1
+        existing_names.add(ing.name.lower())
+
+    await db.flush()
+    return IngredientsToGroceryResponse(added_count=added, skipped_count=skipped)
 
 
 # --- Helpers ---

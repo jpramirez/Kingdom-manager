@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../comments/widgets/comments_section.dart';
+import '../../grocery/providers/grocery_provider.dart';
 import '../../household/providers/household_provider.dart';
 import '../models/recipe.dart';
 import '../providers/meal_provider.dart';
@@ -150,6 +151,82 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
     }
   }
 
+  Future<void> _addToGrocery(String householdId, Recipe recipe) async {
+    if (recipe.ingredients.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.noIngredients)),
+      );
+      return;
+    }
+
+    final listsAsync = ref.read(groceryListsProvider(householdId));
+    final lists = listsAsync.valueOrNull ?? [];
+    if (lists.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No grocery lists found. Create one first.')),
+      );
+      return;
+    }
+
+    final selectedListId = await showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        final l10n = AppLocalizations.of(ctx)!;
+        return AlertDialog(
+          title: Text(l10n.selectGroceryList),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: lists.length,
+              itemBuilder: (_, i) => ListTile(
+                title: Text(lists[i].name),
+                leading: const Icon(Icons.shopping_cart_outlined),
+                onTap: () => Navigator.of(ctx).pop(lists[i].id),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: Text(l10n.cancel),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (selectedListId == null || !mounted) return;
+
+    try {
+      final result = await ref
+          .read(mealRepositoryProvider)
+          .addIngredientsToGrocery(
+            householdId,
+            recipeId: recipe.id,
+            groceryListId: selectedListId,
+          );
+      if (mounted) {
+        final added = result['added_count'] ?? 0;
+        final skipped = result['skipped_count'] ?? 0;
+        ref.invalidate(groceryItemsProvider);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.ingredientsAdded(added, skipped),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
   Future<void> _deleteRecipe(String householdId) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -259,6 +336,12 @@ class _RecipeDetailScreenState extends ConsumerState<RecipeDetailScreen> {
         ),
         title: const Text('Recipe'),
         actions: [
+          if (recipe.ingredients.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.add_shopping_cart),
+              tooltip: AppLocalizations.of(context)!.addToGrocery,
+              onPressed: () => _addToGrocery(householdId, recipe),
+            ),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {

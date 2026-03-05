@@ -291,5 +291,14 @@
       "count": {"type": "int"}
     }
   },
-  "noIngredients": "尚未添加食材"
+  "noIngredients": "尚未添加食材",
+  "addToGrocery": "添加到购物清单",
+  "selectGroceryList": "选择购物清单",
+  "ingredientsAdded": "已添加 {added} 种食材，跳过 {skipped} 种",
+  "@ingredientsAdded": {
+    "placeholders": {
+      "added": {"type": "int"},
+      "skipped": {"type": "int"}
+    }
+  }
 }

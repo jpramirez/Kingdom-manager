@@ -291,5 +291,14 @@
       "count": {"type": "int"}
     }
   },
-  "noIngredients": "ပါဝင်ပစ္စည်း မထည့်ရသေးပါ"
+  "noIngredients": "ပါဝင်ပစ္စည်း မထည့်ရသေးပါ",
+  "addToGrocery": "ကုန်စုံစာရင်းသို့ ထည့်ရန်",
+  "selectGroceryList": "ကုန်စုံစာရင်း ရွေးချယ်ရန်",
+  "ingredientsAdded": "ပါဝင်ပစ္စည်း {added} ခု ထည့်ပြီး {skipped} ခု ကျော်လိုက်သည်",
+  "@ingredientsAdded": {
+    "placeholders": {
+      "added": {"type": "int"},
+      "skipped": {"type": "int"}
+    }
+  }
 }

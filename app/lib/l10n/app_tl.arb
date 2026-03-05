@@ -291,5 +291,14 @@
       "count": {"type": "int"}
     }
   },
-  "noIngredients": "Walang naidagdag na sangkap"
+  "noIngredients": "Walang naidagdag na sangkap",
+  "addToGrocery": "Idagdag sa listahan ng grocery",
+  "selectGroceryList": "Pumili ng listahan ng grocery",
+  "ingredientsAdded": "{added} na sangkap naidagdag, {skipped} nilaktawan",
+  "@ingredientsAdded": {
+    "placeholders": {
+      "added": {"type": "int"},
+      "skipped": {"type": "int"}
+    }
+  }
 }

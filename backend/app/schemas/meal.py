@@ -106,6 +106,16 @@ class MealPlanResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class IngredientsToGroceryRequest(BaseModel):
+    recipe_id: str
+    grocery_list_id: str
+
+
+class IngredientsToGroceryResponse(BaseModel):
+    added_count: int
+    skipped_count: int
+
+
 class MealRequestCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     description: str | None = None

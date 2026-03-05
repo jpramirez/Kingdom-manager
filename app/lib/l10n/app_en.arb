@@ -305,5 +305,14 @@
       "count": {"type": "int"}
     }
   },
-  "noIngredients": "No ingredients added"
+  "noIngredients": "No ingredients added",
+  "addToGrocery": "Add to grocery list",
+  "selectGroceryList": "Select grocery list",
+  "ingredientsAdded": "{added} ingredients added, {skipped} skipped",
+  "@ingredientsAdded": {
+    "placeholders": {
+      "added": {"type": "int"},
+      "skipped": {"type": "int"}
+    }
+  }
 }

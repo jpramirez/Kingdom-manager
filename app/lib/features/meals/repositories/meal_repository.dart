@@ -71,6 +71,22 @@ class MealRepository {
         .toList();
   }
 
+  // Ingredients to Grocery
+  Future<Map<String, dynamic>> addIngredientsToGrocery(
+    String householdId, {
+    required String recipeId,
+    required String groceryListId,
+  }) async {
+    final response = await _api.post(
+      ApiEndpoints.mealsToGrocery(householdId),
+      data: {
+        'recipe_id': recipeId,
+        'grocery_list_id': groceryListId,
+      },
+    );
+    return response.data as Map<String, dynamic>;
+  }
+
   // Meal Requests
   Future<List<MealRequest>> getMealRequests(String householdId) async {
     final response = await _api.get(ApiEndpoints.mealRequests(householdId));

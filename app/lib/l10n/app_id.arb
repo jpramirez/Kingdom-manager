@@ -291,5 +291,14 @@
       "count": {"type": "int"}
     }
   },
-  "noIngredients": "Belum ada bahan ditambahkan"
+  "noIngredients": "Belum ada bahan ditambahkan",
+  "addToGrocery": "Tambah ke daftar belanja",
+  "selectGroceryList": "Pilih daftar belanja",
+  "ingredientsAdded": "{added} bahan ditambahkan, {skipped} dilewati",
+  "@ingredientsAdded": {
+    "placeholders": {
+      "added": {"type": "int"},
+      "skipped": {"type": "int"}
+    }
+  }
 }

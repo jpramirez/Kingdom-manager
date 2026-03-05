@@ -6,6 +6,8 @@ from ...core.dependencies import get_current_user
 from ...models.user import User
 from ...schemas.auth import MessageResponse
 from ...schemas.meal import (
+    IngredientsToGroceryRequest,
+    IngredientsToGroceryResponse,
     MealPlanBatchRequest,
     MealPlanResponse,
     MealRequestCreate,
@@ -104,6 +106,19 @@ async def set_recipe_ingredients(
     current_user: User = Depends(get_current_user),
 ):
     return await meal_service.set_recipe_ingredients(db, household_id, recipe_id, data, current_user)
+
+
+# --- Ingredients to Grocery ---
+
+
+@router.post("/{household_id}/meals/to-grocery", response_model=IngredientsToGroceryResponse)
+async def add_ingredients_to_grocery(
+    household_id: str,
+    data: IngredientsToGroceryRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return await meal_service.add_ingredients_to_grocery(db, household_id, data, current_user)
 
 
 # --- Meal Plans ---
